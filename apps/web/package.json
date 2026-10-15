@@ -29,8 +29,7 @@
     "wrangler": "^4.151.0"
   },
   "dependencies": {
-    "@fontsource/fira-mono": "^4.5.0",
-    "cookie": "^1.1.1"
+    "@fontsource/fira-mono": "^4.5.0"
   },
   "imports": {
     "#lib/*": "./src/lib/*"

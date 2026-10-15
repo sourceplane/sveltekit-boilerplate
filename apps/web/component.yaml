@@ -58,8 +58,12 @@ spec:
     installCommand: pnpm install --frozen-lockfile
     buildCommand: pnpm exec turbo run build --filter=@app/web
 
-    # Smoke: the home page renders and carries the app's marker text.
-    smokeCommand: 'html=$(curl -sfL "${DEPLOYED_URL}/") && echo "${html}" | grep -q ''SvelteKit app'''
+    # Smoke: the home page (pre-rendered, served from the assets) carries the
+    # nav's todos link, and an unknown path is SvelteKit's own 404 page,
+    # rendered by the Worker. Not the site's name: that is the owner's to
+    # change, and HTML-escaped when it carries an `&`. Each response is
+    # buffered before grep so an early match cannot SIGPIPE curl.
+    smokeCommand: 'html=$(curl -sfL "${DEPLOYED_URL}/") && echo "${html}" | grep -q ''href="/todos"'' && nf=$(curl -sL "${DEPLOYED_URL}/smoke-not-found") && echo "${nf}" | grep -q ''<h1>404</h1>'''
   labels:
     team: platform
     layer: delivery
