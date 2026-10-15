@@ -7,9 +7,8 @@ Static Assets through [`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/k
 - `/` — the welcome page with the spring-animated counter, pre-rendered
 - `/about` — pre-rendered, and ships no JavaScript
 - `/todos` — a server `load` and form actions (`?/create`, `?/update`, `?/delete`)
-  that work without JavaScript, against the hosted demo API in
-  `src/routes/todos/api.js`
-- a per-visitor `userid` cookie, set in `src/hooks.server.js`
+  that work without JavaScript, the visitor's list kept in their own httpOnly
+  cookie (`src/routes/todos/store.js`: JSON, capped to stay under 4 KB)
 - Cloudflare Web Analytics (set `PUBLIC_CF_BEACON_TOKEN` at build time)
 
 The site's name — the home page's heading and every page's `<title>` — is in

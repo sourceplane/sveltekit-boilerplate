@@ -29,9 +29,6 @@ importers:
       '@fontsource/fira-mono':
         specifier: ^4.5.0
         version: 4.5.10
-      cookie:
-        specifier: ^1.1.1
-        version: 1.1.1
     devDependencies:
       '@sveltejs/adapter-cloudflare':
         specifier: ^8.0.0

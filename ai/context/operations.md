@@ -17,10 +17,11 @@ component-native desired-state repo.
   into one Worker (`.svelte-kit/cloudflare/_worker.js`) plus Static Assets
   (the same directory). `/` and `/about` are pre-rendered at build time and
   served from the assets; the Worker renders `/todos` (a server `load` and
-  form actions), sets the per-visitor `userid` cookie in its server hook, and
-  answers every other path with SvelteKit's error page. The todos page reads
-  and writes a hosted demo API (`api.svelte.dev`) that this repository does
-  not own. There is no database and no runtime secret. The site's tests
+  form actions) and answers every other path with SvelteKit's error page.
+  The todos live in each visitor's own httpOnly cookie, scoped to `/todos`
+  (`src/routes/todos/store.js`: JSON, capped at 50 todos of 100 characters
+  and refused past ~3.8 KB). There is no database, no third-party service
+  and no runtime secret. The site's tests
   (vitest, `svelte/server` renders) live in `apps/web` and run with
   `pnpm test`.
 - **`tooling/*`** — shared TypeScript and ESLint configuration, and the
@@ -63,8 +64,8 @@ Caveats that matter:
   converged"; probe the URLs instead.
 - A change to `intent.yaml`'s `environments` maps to no component and
   redeploys nothing on its own. Land it with a change under `apps/web`.
-- `/todos` depends on `api.svelte.dev`. When that service errors, the page
-  shows SvelteKit's error page; the deploy and its smoke do not depend on it.
+- A visitor's todos are theirs alone and live in their browser: clearing
+  cookies clears the list, and nothing server-side can read or restore it.
 
 ## Secrets model
 
@@ -98,7 +99,7 @@ orun integrations list --org <ws> --json && orun cloud check --org <ws>
 | deploy a change | merge to `main`; watch the run; failed lanes → `gh run rerun --failed` |
 | redeploy without a change | edit the last line of `apps/web/component.yaml` (`# orun: redeploy <reason> <stamp>`) and merge — it is a deploy trigger, nothing reads it |
 | serve a custom domain | attach it to the Worker in Cloudflare (README, "Custom domain"); nothing in the repository changes |
-| own the todos data | point `apps/web/src/routes/todos/api.js` at a store you own (a KV namespace binding in `wrangler.jsonc`) |
+| share todos across devices | swap `read`/`write` in `apps/web/src/routes/todos/store.js` for a KV namespace bound in `wrangler.jsonc` |
 | add a runtime secret | `orun secrets set <KEY> --org <ws> --env <env>` |
 | headless credentials | `ORUN_TOKEN` (workspace-scoped) + `GITHUB_TOKEN` |
 

@@ -56,12 +56,13 @@ stage_dev="https://${brand}-web-stage.${sub}.workers.dev"
 prod_dev="https://${brand}-web-prod.${sub}.workers.dev"
 
 # The home page and the about page are pre-rendered (served from the assets);
-# the Worker renders everything else.
+# /todos is rendered by the Worker (its server load, the visitor's cookie).
 rows=""
 for pair in "stage|$stage_dev" "prod|$prod_dev"; do
   env="${pair%%|*}"; url="${pair#*|}"
   rows+="| site (${env}) | ${url} | $(badge "$(probe "$url/")") |"$'\n'
   rows+="| about (${env}) | ${url}/about | $(badge "$(probe "$url/about")") |"$'\n'
+  rows+="| todos (${env}) | ${url}/todos | $(badge "$(probe "$url/todos")") |"$'\n'
 done
 
 secrets_list() { { orun secrets list --org "$ws" "$@" 2>/dev/null || true; } | awk 'NR>1 && NF {print "  - "$1}'; }

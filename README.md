@@ -2,8 +2,8 @@
 
 Vercel's [SvelteKit boilerplate](https://github.com/vercel/examples/tree/main/framework-boilerplates/sveltekit)
 — a welcome page with a counter, a static about page, and a todos demo
-(server `load`, form actions that work without JavaScript, a per-visitor
-cookie set in a server hook, a hosted demo API) — running on **Cloudflare
+(server `load`, form actions that work without JavaScript, the list kept in
+the visitor's own cookie) — running on **Cloudflare
 Workers + Static Assets** through SvelteKit's own
 [`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare),
 and packaged as an **Orun baseline**: one command takes a new site from
@@ -57,11 +57,11 @@ repository's machinery ships.
 |---|---|
 | The site's name (the home page's heading, every page's `<title>`) | `apps/web/src/lib/site.js` |
 | `/` (pre-rendered, with the counter), `/about` (pre-rendered, no JavaScript), `/todos` (server `load` + `create`/`update`/`delete` actions) | `apps/web/src/routes` |
-| The `userid` cookie hook, the counter, the header | `apps/web/src/hooks.server.js`, `apps/web/src/lib` |
-| The demo-API client (`https://api.svelte.dev`) | `apps/web/src/routes/todos/api.js` |
+| The counter, the header | `apps/web/src/lib` |
+| The todos store: the visitor's list in one httpOnly cookie | `apps/web/src/routes/todos/store.js` |
 | Layout with the optional analytics beacon | `apps/web/src/routes/+layout.svelte`, `apps/web/src/env.js` |
 | Adapter, Worker config, deploy contract | `apps/web/vite.config.js`, `apps/web/wrangler.jsonc`, `apps/web/component.yaml` |
-| Tests (`svelte/server` renders: the counter, the site's name on its pages) | `apps/web/src/lib/Counter.test.js`, `apps/web/src/lib/site.test.js` |
+| Tests (`svelte/server` renders: the counter, the site's name on its pages; the todos store and actions) | `apps/web/src/lib/*.test.js`, `apps/web/src/routes/todos/store.test.js` |
 
 ## Getting started
 
@@ -81,11 +81,14 @@ pnpm --filter @app/web preview    # wrangler dev over the built Worker
 Optional: `PUBLIC_CF_BEACON_TOKEN` at build time renders the Cloudflare Web
 Analytics beacon (stands in for the template's Vercel web vitals).
 
-The todos page talks to `api.svelte.dev`, the hosted demo store the
-template ships with; it is not part of this repository and its availability
-is Svelte's, not yours (at the time of writing it answers 500 to every
-request, and the page shows SvelteKit's error page). Point `api.js` at a
-store you own — a KV namespace is the natural one here — to make it yours.
+The todos keep each visitor's list in their own browser: one httpOnly
+cookie, scoped to `/todos`, holding the list as JSON (base64url-encoded),
+capped at 50 todos of up to 100 characters and refused past ~3.8 KB so it
+stays under a browser's 4 KB cookie limit. The template's hosted demo store,
+`api.svelte.dev`, is gone (it answers 500 or 404 to everything), and a
+cookie needs no third party while keeping the demo's point: a server `load`
+and form actions that work without JavaScript. To share a list across
+devices, swap `store.js`'s `read`/`write` for a KV namespace.
 
 ## How it maps to Vercel
 

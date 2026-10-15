@@ -1,8 +1,8 @@
 # sveltekit-boilerplate
 
 A SvelteKit site — a welcome page with a counter, a static about page, and a
-todos demo (a server `load`, form actions that work without JavaScript, a
-per-visitor cookie set in a server hook) — on **Cloudflare Workers + Static
+todos demo (a server `load` and form actions that work without JavaScript,
+the list kept in the visitor's own cookie) — on **Cloudflare Workers + Static
 Assets** through SvelteKit's own
 [`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare).
 
@@ -22,11 +22,11 @@ and how to operate it is in
 |---|---|
 | The site's name (the home page's heading, every page's `<title>`) | `apps/web/src/lib/site.js` |
 | `/` (pre-rendered, with the counter), `/about` (pre-rendered, no JavaScript), `/todos` (server `load` + `create`/`update`/`delete` actions) | `apps/web/src/routes` |
-| The `userid` cookie hook, the counter, the header | `apps/web/src/hooks.server.js`, `apps/web/src/lib` |
-| The todos demo's API client (`https://api.svelte.dev`) | `apps/web/src/routes/todos/api.js` |
+| The counter, the header | `apps/web/src/lib` |
+| The todos store: the visitor's list in one httpOnly cookie | `apps/web/src/routes/todos/store.js` |
 | Layout with the optional analytics beacon | `apps/web/src/routes/+layout.svelte`, `apps/web/src/env.js` |
 | Workers build and deploy contract | `apps/web/vite.config.js`, `apps/web/wrangler.jsonc`, `apps/web/component.yaml` |
-| Tests (`svelte/server` renders: the counter, the site's name on its pages) | `apps/web/src/lib/*.test.js` (vitest) |
+| Tests (`svelte/server` renders: the counter, the site's name on its pages; the todos store and actions) | `apps/web/src/**/*.test.js` (vitest) |
 
 ## Getting started
 
@@ -52,11 +52,13 @@ One optional build-time variable (`apps/web/.env.example`):
 |---|---|
 | `PUBLIC_CF_BEACON_TOKEN` | Cloudflare Web Analytics token (dashboard → Web Analytics → add a site). Unset, no script is rendered. |
 
-The todos page talks to `api.svelte.dev`, the hosted demo store the SvelteKit
-template ships with. It is not part of this repository and its availability
-is Svelte's, not yours: when it answers with an error, the page shows
-SvelteKit's error page. Point `apps/web/src/routes/todos/api.js` at a store
-you own — a KV namespace is the natural one here — to make the todos yours.
+The todos page keeps each visitor's list in their own browser: one httpOnly
+cookie, scoped to `/todos`, holding the list as JSON — no database and no
+third party, and every action works without JavaScript. A cookie holds about
+4 KB, so the list is capped (50 todos of up to 100 characters, and a change
+that would not fit is refused with a message). To share a list across
+devices, swap `read` and `write` in `apps/web/src/routes/todos/store.js` for
+a KV namespace bound in `apps/web/wrangler.jsonc`.
 
 ## How it deploys
 

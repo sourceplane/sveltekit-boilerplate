@@ -129,11 +129,10 @@ orun new --blueprint repo-blueprint.yaml \
 
 - **Write**: the pages are `apps/web/src/routes/`; the site's name is
   `apps/web/src/lib/site.js`. Every merge to `main` redeploys.
-- **Own the todos**: `/todos` talks to `api.svelte.dev`, the SvelteKit
-  template's hosted demo store (at the time of writing it answers 500, and
-  the page shows SvelteKit's error page). Point
-  `apps/web/src/routes/todos/api.js` at a store the site owns — a KV
-  namespace is the natural one.
+- **The todos**: each visitor's list lives in their own httpOnly cookie
+  (`apps/web/src/routes/todos/store.js`), so the site depends on no third
+  party. To share a list across devices, swap the store's `read`/`write`
+  for a KV namespace.
 - **Custom domain**: attach it to the Worker in Cloudflare (the site's
   README, "Custom domain"); nothing in the repository changes, because the
   site builds no absolute links. There is no domain phase: attaching a domain

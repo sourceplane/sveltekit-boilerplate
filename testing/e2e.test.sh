@@ -30,9 +30,12 @@
 #      real deploy ends with — and then read every route the site promises:
 #      the home page's heading and title carry the site's name (escaped, not
 #      broken, by an `&` and an `'`), `/about` is pre-rendered and ships no
-#      JavaScript, `/todos` runs in the Worker (its hook's cookie, its load,
-#      a named form action), the static files and the hashed `_app` chunks
-#      are served, and an unknown path is SvelteKit's 404 page.
+#      JavaScript, `/todos` runs in the Worker and keeps a visitor's list in
+#      their own cookie — a todo created, toggled, edited and deleted through
+#      the named actions, as a plain form post and as Kit's `enhance` posts
+#      it, each read back by a GET carrying the cookie — the static files and
+#      the hashed `_app` chunks are served, and an unknown path is
+#      SvelteKit's 404 page.
 #
 # What it cannot do is the platform's half: create the repository, mint the
 # brokered Cloudflare token, deploy for real and probe workers.dev. That is a
@@ -178,7 +181,7 @@ DEPLOYED_URL="$url" bash -c "$smoke" || { echo "FAIL: the deploy's smoke refused
 
 echo "   ▸ every route the site promises"
 python3 - "$url" "$values" <<'PY'
-import html, json, re, sys, urllib.error, urllib.request
+import html, json, re, sys, urllib.error, urllib.parse, urllib.request
 base, values = sys.argv[1], json.load(open(sys.argv[2]))
 name = values["productname"]
 problems = []
@@ -236,37 +239,72 @@ if title(about) != f"About | {name}":
 if "<script" in about:
     bad("/about ships a <script>; it is pre-rendered without client-side rendering")
 
-# /todos — rendered by the Worker: the server hook sets the visitor's cookie
-# and the server load runs. The load reads api.svelte.dev, the hosted demo
-# store this repository does not own: 200 when it answers, SvelteKit's 500
-# page when it does not (it answers 500 to everything at the time of
-# writing). Either is the Worker; a 404 or a missing cookie is not.
-s, h, body = get("/todos")
-if s not in (200, 500):
-    bad(f"/todos answered {s}; the Worker renders it (200, or 500 from the demo API)")
-if "userid=" not in (h.get("set-cookie") or ""):
-    bad("/todos set no userid cookie — the server hook did not run")
-if h.get("x-sveltekit-page") != "true":
-    bad("/todos is not a SvelteKit page response")
-if s == 200 and title(body.decode()) != f"Todos | {name}":
-    bad(f"/todos's <title> is {title(body.decode())!r}, not 'Todos | {name}'")
-print(f"     /todos: {s} (the demo API {'answered' if s == 200 else 'did not'}), the hook's cookie set")
+# /todos — rendered by the Worker: the server load reads the visitor's list
+# from their own cookie (no third party), and every named action writes it
+# back. A browser is stood in for by a one-cookie jar: each response's
+# Set-Cookie is kept and sent with the next request.
+jar = {}
+def keep(h):
+    for line in h.get_all("set-cookie") or []:
+        pair, _, attrs = line.partition(";")
+        k, _, v = pair.strip().partition("=")
+        if k != "todos":
+            continue
+        a = attrs.lower().replace(" ", "")
+        if "path=/todos" not in a or "httponly" not in a or "samesite=lax" not in a:
+            bad(f"the todos cookie is not httpOnly, SameSite=Lax and scoped to /todos: {line}")
+        if "max-age=0" in a or not v:
+            jar.pop(k, None)
+        else:
+            jar[k] = v
+def cookie():
+    return {"cookie": "; ".join(f"{k}={v}" for k, v in jar.items())} if jar else {}
+def act(action, fields, enhanced=False):
+    headers = {"content-type": "application/x-www-form-urlencoded", "origin": base, **cookie()}
+    if enhanced:  # as Kit's `enhance` posts it
+        headers |= {"x-sveltekit-action": "true", "accept": "application/json"}
+    s, h, body = get(f"/todos?/{action}", data=urllib.parse.urlencode(fields).encode(), headers=headers)
+    keep(h)
+    if enhanced:
+        try:
+            kind = json.loads(body).get("type")
+        except ValueError:
+            kind = None
+        if kind != "success":
+            bad(f"?/{action} (enhanced) answered {s} {body[:120]!r}, not a success ActionResult")
+    elif s != 200:
+        bad(f"?/{action} (a plain form post) answered {s}")
+def todos():
+    s, h, body = get("/todos", headers=cookie())
+    page = body.decode()
+    if s != 200:
+        bad(f"/todos answered {s}")
+    if h.get("x-sveltekit-page") != "true":
+        bad("/todos is not a SvelteKit page response")
+    if title(page) != f"Todos | {name}":
+        bad(f"/todos's <title> is {title(page)!r}, not 'Todos | {name}'")
+    rows = re.findall(r'class="todo[ "].*?name="uid" value="([^"]*)".*?name="done" value="([^"]*)"'
+                      r'.*?name="text" value="([^"]*)"', page, re.S)
+    return [{"uid": u, "done": d == "", "text": html.unescape(t)} for u, d, t in rows]
 
-# A named form action, as Kit's enhance posts it: the Worker runs `create`
-# and answers an ActionResult (an `error` one if the demo API cannot be
-# reached at all).
-s, h, body = get("/todos?/create", data=b"text=from+the+e2e+tier",
-                 headers={"content-type": "application/x-www-form-urlencoded",
-                          "x-sveltekit-action": "true", "accept": "application/json",
-                          "origin": base})
-try:
-    result = json.loads(body)
-except ValueError:
-    result = {}
-if result.get("type") not in ("success", "error"):
-    bad(f"POST /todos?/create answered {s} {body[:120]!r}, not an ActionResult")
-else:
-    print(f"     POST /todos?/create: the create action ran ({result['type']})")
+if todos() != []:
+    bad("a visitor with no cookie does not start with an empty list")
+text = f"Tell {name} hello"
+act("create", {"text": text})
+after = todos()
+if [t["text"] for t in after] != [text]:
+    bad(f"a plain-form create, read back with its cookie, shows {after}, not [{text!r}]")
+uid = after[0]["uid"] if after else ""
+act("update", {"uid": uid, "done": "true"}, enhanced=True)
+if not (todos() or [{}])[0].get("done"):
+    bad("the toggle (enhanced) did not mark the todo done")
+act("update", {"uid": uid, "text": text + " again"})
+if [t["text"] for t in todos()] != [text + " again"]:
+    bad("the edit (a plain form post) did not change the todo's text")
+act("delete", {"uid": uid}, enhanced=True)
+if todos() != [] or jar:
+    bad("the delete (enhanced) left the todo, or its cookie, behind")
+print("     /todos: create, toggle, edit and delete through the visitor's cookie, with and without JavaScript")
 
 # An unknown path is SvelteKit's own 404, rendered by the Worker in the layout.
 s, _, body = get("/no-such-page")
@@ -278,7 +316,7 @@ if problems:
     for p in problems:
         print(f"  ✕ {p}", file=sys.stderr)
     sys.exit(1)
-print(f"   /, the _app chunks, the static files, /about, /todos and its create action, a 404 — the site's own")
+print(f"   /, the _app chunks, the static files, /about, /todos and its four actions, a 404 — the site's own")
 PY
 
 echo "e2e.test.sh: ok"

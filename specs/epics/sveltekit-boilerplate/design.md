@@ -28,11 +28,13 @@ prefetches with `sveltekit:prefetch`.
 | Deploy on push | Orun: `apps/web/component.yaml` (`cloudflare-workers-assets-turbo`) deploys `sveltekit-boilerplate-web-{stage,prod}` on merge to `main` once the product is linked |
 
 The demo API (`https://api.svelte.dev`, `src/routes/todos/api.js`) is an
-external service, not a Vercel primitive, and stays as written.
+external service, not a Vercel primitive, and stayed as written through
+SK2. SK3 replaced it: the service is gone, and the todos now live in the
+visitor's own cookie (§6, risks SK-B and SK-L).
 
 Alternative rejected: `@sveltejs/adapter-static` + assets only. It would
-drop `/todos` — the server `load`, the actions, the hook's cookie — which
-is the point of the demo.
+drop `/todos` — the server `load` and the actions — which is the point of
+the demo.
 
 ### What SvelteKit 3 demands
 
@@ -86,8 +88,8 @@ with `--name sveltekit-boilerplate-web-<env>`. Locally, `pnpm --filter
 
 ## 5. Out of scope
 
-Migrating the components to Svelte 5 runes, replacing the hosted demo API
-with a Cloudflare binding (the obvious next step for a real app), a
+Migrating the components to Svelte 5 runes, a shared todos store (a KV
+binding behind `store.js` — the obvious next step for a real app), a
 custom-domain component (§6: the brokered deploy token carries no zone
 permissions, so attaching a domain is the owner's step), and the
 `_routes.json` the adapter still writes for Pages.
@@ -128,6 +130,21 @@ carries a `// prettier-ignore` and the rewrite's double quotes pass `lint` in
 the site. `src/lib/site.test.js` renders the home and about pages through
 `svelte/server` and reads the name back out of them, so it holds in a site
 under any name.
+
+**The todos keep their list in the visitor's cookie.** The template's
+hosted demo store is gone (`api.svelte.dev` answers 500 to `/todos/<id>` and
+404 to `/`), and a site whose nav links a page that fails from day one is
+not a baseline. `src/routes/todos/store.js` keeps each visitor's list in one
+httpOnly cookie, `path=/todos`, `SameSite=Lax`: the list as JSON rows of
+`[uid, text, done]`, base64url-encoded so every byte is cookie-safe. The
+server `load` reads it and the three named actions (`create`, `update` for
+toggle and edit, `delete`) write it back, so every action still works
+without JavaScript and Kit's `enhance` still runs them in place. A browser
+keeps about 4 KB per cookie, so the list is capped at 50 todos of 100
+characters and a change that would push the encoded value past 3,800 bytes
+is refused with a message rather than written. With the API gone, nothing
+needs the template's `userid` cookie, so `src/hooks.server.js`, `App.Locals`
+and the `cookie` dependency go too.
 
 **The smoke reads structure, not the name**: the home page must carry the
 nav's `/todos` link (it is pre-rendered, so this proves the assets), and an

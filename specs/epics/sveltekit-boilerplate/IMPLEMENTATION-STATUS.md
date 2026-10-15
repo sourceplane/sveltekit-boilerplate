@@ -84,6 +84,19 @@ todos pages' titles read `About | …` and `Todos | …` through `pageTitle`
 (upstream: `Home`, `About`, `Todos`). It is the seam the baseline's rename
 rewrites. `src/lib/site.test.js` renders the pages and reads the name back.
 
+### The todos live in the visitor's cookie (SK3)
+
+`api.svelte.dev` is gone (500 on `/todos/<id>`, 404 on `/`), so every site
+would have shipped a nav link to a page that fails. `src/routes/todos/api.js`
+is replaced by `store.js`: the list in one httpOnly cookie (`path=/todos`,
+`SameSite=Lax`), JSON rows `[uid, text, done]` base64url-encoded, capped at 50
+todos of 100 characters and refused past 3,800 encoded bytes. `load` and the
+`create`/`update`/`delete` actions read and write it; the page shows an
+action's `form.error`. `src/hooks.server.js` (the `userid` cookie), the
+`App.Locals.userid` type and the `cookie` dependency are gone: nothing needs
+them. `src/routes/todos/store.test.js` covers the round trip, the caps and
+the four actions.
+
 ### `apps/web/README.md` is the app's, not the template's (SK3)
 
 The upstream README advertised "Deploy with Vercel" and a Vercel demo, and it
@@ -94,6 +107,7 @@ ships into every site. It now describes the app and credits the template
 
 | What | Before | After | Why |
 |---|---|---|---|
+| `/todos` store | `api.svelte.dev` (gone), keyed by the hook's `userid` cookie | the visitor's own `todos` cookie; no hook, no `cookie` dependency | a page that fails for every visitor of every site cannot ship (risks SK-L) |
 | `apps/web` smoke | `grep 'SvelteKit app'` on `/` | the nav's `/todos` link on `/`, and SvelteKit's 404 page for an unknown path | the name is the owner's, and HTML-escaped when it carries `&`; the 404 proves the Worker, not just the assets |
 | `ci.yml` gate | `vars.ORUN_CI == 'true'` | skip only while `intent.yaml` names `ws_CHANGE_ME` | a bootstrap cannot set a repository variable |
 | `checks.yml` | every push and pull request | pull requests and `workflow_dispatch` | one workflow per push to main (risks SK-K) |
@@ -124,9 +138,10 @@ ships into every site. It now describes the app and credits the template
   `deploy-dry-run` pass in a staged job tree; `wrangler dev` serves the built
   Worker from it; the component's own smoke passes; `/` (heading and title
   carry the escaped name), its `_app/immutable` chunks, the static files,
-  `/about` (no `<script>`), `/todos` (500 from the demo API, the hook's
-  cookie set), `POST /todos?/create` (an ActionResult) and a 404 are the
-  site's own. Re-run with the pin at 0.20.0 (lane layout): also green
+  `/about` (no `<script>`), `/todos` (200; a todo created with a plain form
+  post, toggled through `enhance`, edited, and deleted through `enhance`,
+  each read back by a GET carrying the httpOnly `todos` cookie) and a 404
+  are the site's own. Re-run with the pin at 0.20.0 (lane layout): also green
   (risks SK-J).
 - Not verified: a live bootstrap against a workspace (risks SK-H).
 
@@ -161,7 +176,6 @@ ships into every site. It now describes the app and credits the template
 | typescript | ^6.0.3 | Kit 3's stated requirement (an optional peer); svelte-check 4.7 accepts ^5 and ^6; the root tooling stays on 5.9 |
 | svelte-check | ^4.7.6 | the template's `check` script, current major (the template: `^2.7`) |
 | prettier, prettier-plugin-svelte | ^3.9.10, ^4.1.1 | the template's `lint`; prettier 3 needs the plugin named in `.prettierrc` |
-| cookie | ^1.1.1 | the template's `parse`/`serialize` with bundled types; 2.x renamed them |
 | @fontsource/fira-mono | ^4.5.0 | as upstream |
 | vitest | ^5.0.4 | current; runs on the app's `vite.config.js` |
 | wrangler | ^4.151.0 | compatibility_date 2026-10-01 |

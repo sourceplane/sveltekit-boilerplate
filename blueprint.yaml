@@ -20,11 +20,11 @@ metadata:
   description: >
     Vercel's SvelteKit boilerplate as a product of its own: a welcome page with
     a counter, a pre-rendered about page that ships no JavaScript, and a todos
-    demo with a server load, form actions that work without JavaScript and a
-    per-visitor cookie, built by SvelteKit's own Cloudflare adapter into one
-    Worker with Static Assets, and CI that deploys it to stage and prod on
-    merge. One provider, one consent, one token. Live in about thirteen
-    minutes.
+    demo whose server load and form actions work without JavaScript, each
+    visitor's list kept in their own cookie, built by SvelteKit's own
+    Cloudflare adapter into one Worker with Static Assets, and CI that deploys
+    it to stage and prod on merge. One provider, one consent, one token. Live
+    in about thirteen minutes.
   tags: [sveltekit, svelte, vite, cloudflare, starter]
 spec:
   source:

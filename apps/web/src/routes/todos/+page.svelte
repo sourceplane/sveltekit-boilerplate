@@ -6,6 +6,9 @@
 
   /** @type {import('./$types').PageData} */
   export let data;
+
+  /** @type {import('./$types').ActionData} */
+  export let form;
 </script>
 
 <svelte:head>
@@ -19,6 +22,10 @@
   <form class="new" action="/todos?/create" method="post" use:enhance>
     <input name="text" aria-label="Add todo" placeholder="+ tap to add a todo" />
   </form>
+
+  {#if form?.error}
+    <p class="error">{form.error}</p>
+  {/if}
 
   {#each data.todos as todo (todo.uid)}
     <div
@@ -69,6 +76,12 @@
 
   .new {
     margin: 0 0 0.5rem 0;
+  }
+
+  .error {
+    margin: 0 0 0.5rem 0;
+    text-align: center;
+    color: #ff3e00;
   }
 
   input {
