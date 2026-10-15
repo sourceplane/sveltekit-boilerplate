@@ -5,9 +5,9 @@ the code departed from `design.md` or from the upstream template.
 
 | Milestone | State | PR |
 |---|---|---|
-| SK0 — the spec | | |
-| SK1 — the site on Workers | | |
-| SK2 — ready to instantiate | | |
+| SK0 — the spec | ✅ Shipped | [#1](https://github.com/sourceplane/sveltekit-boilerplate/pull/1) |
+| SK1 — the site on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-boilerplate/pull/2) |
+| SK2 — ready to instantiate | ✅ Shipped | [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3) |
 
 ## Departures from the upstream template
 
@@ -74,3 +74,39 @@ preview`, which has no Workers runtime); `typecheck` is upstream's `check`
 
 The repository's root `.gitignore` covers `.svelte-kit/`; the workspace
 lockfile replaces the template's.
+
+## Verified
+
+- Local: `svelte-check` (0 errors; 3 warnings for the template's self-closing
+  `<button />`), `prettier --check`, `pnpm test` (1 test, a `svelte/server`
+  render of the counter), `pnpm build` green; `wrangler dev --config
+  wrangler.jsonc`: `/` 200 ("to your new SvelteKit app", no beacon markup),
+  `/about` 200 with no `<script>`, `/svelte-welcome.webp` 200 (`image/webp`),
+  `/favicon.png` 200, `/_app/immutable/entry/start.*.js` 200, `/nope` 404
+  (SvelteKit's error page from the Worker). `/todos`: the hook sets the
+  `userid` cookie, the server `load` runs and renders SvelteKit's 500 page
+  because `api.svelte.dev` answers `500 Invalid URL string.` to every request
+  (checked directly on 2026-10-15; SK-B); `POST /todos?/create` runs the
+  action. A fresh clone of #2's head: `pnpm install --frozen-lockfile`,
+  typecheck, lint, test, build green.
+- CI: `Checks` green on #1, #2 and on every push to `main`.
+- Not verified: a live deploy (gated until the product is linked to an Orun
+  workspace with a Cloudflare connection); the beacon with a real token; the
+  todos flow end to end and the enhanced forms in a browser (both need a
+  working demo API — SK-B).
+
+## Versions
+
+| Package | Version | Why |
+|---|---|---|
+| @sveltejs/kit | ^3.0.1 | the current major (2026-10-06); the template is `1.0.0-next.428`; the current adapter needs Kit 3 |
+| @sveltejs/adapter-cloudflare | ^8.0.0 | emits `_worker.js` + the static output; needs Kit 3 and wrangler ≥ 4.67 |
+| svelte | ^5.57.2 | Kit 3's minimum is 5.57.1; the template's Svelte 3 syntax runs in legacy mode |
+| vite, @sveltejs/vite-plugin-svelte | ^8.3.4, ^7.3.1 | Kit 3's requirements (the template: Vite 3) |
+| typescript | ^6.0.3 | Kit 3's stated requirement (an optional peer); svelte-check 4.7 accepts ^5 and ^6; the root tooling stays on 5.9 |
+| svelte-check | ^4.7.6 | the template's `check` script, current major (the template: `^2.7`) |
+| prettier, prettier-plugin-svelte | ^3.9.10, ^4.1.1 | the template's `lint`; prettier 3 needs the plugin named in `.prettierrc` |
+| cookie | ^1.1.1 | the template's `parse`/`serialize` with bundled types; 2.x renamed them |
+| @fontsource/fira-mono | ^4.5.0 | as upstream |
+| vitest | ^5.0.4 | current; runs on the app's `vite.config.js` |
+| wrangler | ^4.151.0 | compatibility_date 2026-10-01 |

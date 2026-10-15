@@ -8,7 +8,7 @@ This is the third port without OpenNext, on the shape astro-boilerplate set for 
 
 | Field | Value |
 |-------|-------|
-| Status | Draft |
+| Status | ✅ Shipped — SK0–SK2 landed (#1, #2, #3) |
 | Cluster | **SK** (SK0–SK2) |
 | Owner(s) | `apps/web` (the site, with its server-render test) |
 | Builds on | `cirrus-baseline` conventions; the `astro-boilerplate` port's repository shape |
@@ -16,7 +16,7 @@ This is the third port without OpenNext, on the shape astro-boilerplate set for 
 | Changes | Adapter swap, SvelteKit 1.0-next → 3 (Svelte 5, Vite 8), the Cloudflare Web Analytics beacon in the layout for Vercel's web vitals; the pages, the counter, the header, the hook and the demo-API client keep their code |
 | Decisions locked | (1) SvelteKit's Cloudflare adapter, not OpenNext (SvelteKit is not Next). (2) SvelteKit 3 + adapter 8 (current majors; the current adapter needs Kit 3). (3) Kit's own `enhance` and named actions replace the pre-1.0 action protocol — the template's `form.js` goes. (4) Cloudflare Web Analytics for `web-vitals` + `VERCEL_ANALYTICS_ID`. (5) Tests live in the app (`svelte/server` rendering needs the Svelte Vite plugin). (6) The demo API (`api.svelte.dev`) stays as written — an external service, not a Vercel primitive. |
 | Gate | SK1 is the first user-visible rung. |
-| Shipped as | |
+| Shipped as | `main` after [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3); verified locally under `wrangler dev`, deploy gated until a workspace is linked |
 
 ## Read order
 
