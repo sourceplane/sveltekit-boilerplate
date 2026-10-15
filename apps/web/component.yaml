@@ -1,0 +1,67 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: web
+  description: The SvelteKit site (SvelteKit on Cloudflare Workers + Static Assets via @sveltejs/adapter-cloudflare, per environment)
+spec:
+  type: cloudflare-workers-assets-turbo
+  lifecycle: production
+  owner: platform
+  domain: web
+  path: apps/web
+  # Its own lane per environment: the framework build is the longest job in
+  # the plan, and a shared lane would wait on it.
+  lane: isolated
+  subscribe:
+    environments:
+      - name: dev
+        profile: verify
+      - name: stage
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+      - name: prod
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+  parameters:
+    nodeVersion: '22'
+    pnpmVersion: '10.12.1'
+
+    workspaceDir: ../..
+    appDir: .
+
+    turboFilter: '@app/web'
+    # The committed config: worker name, compatibility date and flags, the
+    # Worker entry and the ASSETS binding over the adapter's output.
+    wranglerConfig: wrangler.jsonc
+
+    # @sveltejs/adapter-cloudflare emits the Worker as
+    # .svelte-kit/cloudflare/_worker.js and the static output (prerendered
+    # pages, _app/* hashed assets, static/) beside it — both deploy in one
+    # `wrangler deploy`.
+    workerEntrypoint: .svelte-kit/cloudflare/_worker.js
+    assetsDir: .svelte-kit/cloudflare
+
+    # Per-env worker name: sveltekit-boilerplate-web-{dev,stage,prod}.
+    workerName: sveltekit-boilerplate-web
+    environmentAwareWorkerName: true
+
+    # The account's workers.dev subdomain; exported to the smoke step as
+    # ${WORKERS_DEV_SUBDOMAIN} and used to build ${DEPLOYED_URL}.
+    workersDevSubdomain: your-workers-subdomain
+
+    installCommand: pnpm install --frozen-lockfile
+    buildCommand: pnpm exec turbo run build --filter=@app/web
+
+    # Smoke: the home page renders and carries the app's marker text.
+    smokeCommand: 'html=$(curl -sfL "${DEPLOYED_URL}/") && echo "${html}" | grep -q ''SvelteKit app'''
+  labels:
+    team: platform
+    layer: delivery
+    surface: web
+    runtime: cloudflare
