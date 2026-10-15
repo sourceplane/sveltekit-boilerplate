@@ -2,13 +2,14 @@
   import { enhance } from '$app/forms';
   import { scale } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  import { pageTitle } from '#lib/site.js';
 
   /** @type {import('./$types').PageData} */
   export let data;
 </script>
 
 <svelte:head>
-  <title>Todos</title>
+  <title>{pageTitle('Todos')}</title>
   <meta name="description" content="A todo list app" />
 </svelte:head>
 

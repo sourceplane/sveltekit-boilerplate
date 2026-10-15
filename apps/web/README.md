@@ -1,30 +1,26 @@
-# SvelteKit
+# apps/web — the site
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte), deployed to [Vercel](https://vercel.com).
+Vercel's [SvelteKit boilerplate](https://github.com/vercel/examples/tree/main/framework-boilerplates/sveltekit)
+(the `create-svelte` demo app, MIT) on SvelteKit 3, running on Cloudflare Workers +
+Static Assets through [`@sveltejs/adapter-cloudflare`](https://svelte.dev/docs/kit/adapter-cloudflare):
 
-## Deploy Your Own
+- `/` — the welcome page with the spring-animated counter, pre-rendered
+- `/about` — pre-rendered, and ships no JavaScript
+- `/todos` — a server `load` and form actions (`?/create`, `?/update`, `?/delete`)
+  that work without JavaScript, against the hosted demo API in
+  `src/routes/todos/api.js`
+- a per-visitor `userid` cookie, set in `src/hooks.server.js`
+- Cloudflare Web Analytics (set `PUBLIC_CF_BEACON_TOKEN` at build time)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fvercel%2Ftree%2Fmain%2Fexamples%2Fsveltekit&project-name=sveltekit-vercel&repository-name=sveltekit-vercel&demo-title=SvelteKit%20%2B%20Vercel&demo-description=A%20SvelteKit%20app%20optimized%20Edge-first.&demo-url=https%3A%2F%2Fsveltekit-template.vercel.app%2F)
-
-_Live Example: https://sveltekit-template.vercel.app_
-
-## Developing
-
-Once you've installed dependencies with `pnpm install`, start a development server:
-
-```bash
-pnpm run dev
-
-# or start the server and open the app in a new browser tab
-pnpm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
+The site's name — the home page's heading and every page's `<title>` — is in
+`src/lib/site.js`.
 
 ```bash
-pnpm run build
+pnpm dev        # vite dev on http://localhost:5173
+pnpm build      # vite build → .svelte-kit/cloudflare (_worker.js + the static output)
+pnpm preview    # wrangler dev over the built Worker
+pnpm test       # vitest
 ```
 
-You can preview the production build with `npm run preview`.
+How it is deployed — per environment, on merge to `main` — is the
+repository's README and `component.yaml` beside this file.

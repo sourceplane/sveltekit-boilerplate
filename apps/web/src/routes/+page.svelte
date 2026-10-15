@@ -1,9 +1,10 @@
 <script>
   import Counter from '#lib/Counter.svelte';
+  import { SITE_NAME, pageTitle } from '#lib/site.js';
 </script>
 
 <svelte:head>
-  <title>Home</title>
+  <title>{pageTitle()}</title>
   <meta name="description" content="Svelte demo app" />
 </svelte:head>
 
@@ -16,7 +17,7 @@
       </picture>
     </span>
 
-    to your new<br />SvelteKit app
+    to your new<br />{SITE_NAME}
   </h1>
 
   <h2>

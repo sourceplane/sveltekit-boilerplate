@@ -1,5 +1,9 @@
+<script>
+  import { pageTitle } from '#lib/site.js';
+</script>
+
 <svelte:head>
-  <title>About</title>
+  <title>{pageTitle('About')}</title>
   <meta name="description" content="About this app" />
 </svelte:head>
 
