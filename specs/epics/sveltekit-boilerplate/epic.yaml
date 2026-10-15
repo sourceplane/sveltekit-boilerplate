@@ -32,3 +32,9 @@ spec:
         - "a site built from it carries the site only, renamed throughout to its own name, repository and Worker"
         - "Baseline CI is green: contract tests, the blueprint read by the pinned orun, the leak gate, the offline bootstrap and the end-to-end tier"
       tasks: [SK-4]
+    - name: "SK4 — one landing"
+      exitCriteria:
+        - "repo-blueprint.yaml builds the site in one landing (`01-product`) and records it in a second (`03-docs`); the card's programme names the same two"
+        - "a bootstrap landing is checked by `plan` alone: ci.yml skips the lanes and checks.yml its job on `orun/BASE-…` branches"
+        - "Baseline CI is green, and a site bootstrapped from the next tag is live on stage and prod"
+      tasks: [SK-5]

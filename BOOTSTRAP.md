@@ -11,11 +11,18 @@ not separate workflows. The console card the platform renders is
 brokered secrets and the programme, and `testing/manifest.test.sh` holds it
 to what the build document does.
 
-Target wall-clock: **about thirteen minutes** — an estimate summed from the
-phases (3 + 6 + 4) until a bootstrap measures it: three landings, one
-SvelteKit build per environment (seconds, not minutes — the long poles are
-the installs, the runners and a first deploy's workers.dev route), stage and
-prod deployed side by side until `03-docs` restores the promotion gate.
+Target wall-clock: **about five minutes** — an estimate summed from the
+phases (4 + 1) until a bootstrap measures it: two landings, each checked by
+`plan` alone, one SvelteKit build per environment (seconds, not minutes —
+the long poles are the installs, the runners and a first deploy's
+workers.dev route), stage and prod deployed side by side until `03-docs`
+restores the promotion gate. It is unmeasured: the one console bootstrap
+attempted (2026-10-15, workspace `sveltekit-live`, `bst_1G0YCW84`) never
+started, because the platform's cloud build sandbox failed to provision
+("Provisioning failed: daytona POST sandbox: 400 from provider") — a
+platform capacity failure, not this baseline's. The sibling site baselines measured 7m07s–8m43s from
+the console's Build over three landings; `01-product` drops one landing and
+the Checks waits, cirrus-baseline baseline-v22's shape.
 
 ## 0. What you need
 
@@ -35,7 +42,7 @@ prod deployed side by side until `03-docs` restores the promotion gate.
   **admin-role API key** for headless runs (secret writes below admin are
   masked as `not_found`).
 - **The repository allow-listed in the workspace** (console → Settings → Git
-  repos), unless the credential can write links. `01-scaffold`'s `link` step
+  repos), unless the credential can write links. `01-product`'s `link` step
   stops and names the fix if it is not.
 
 ## 1. One command: `--resume`
@@ -70,14 +77,13 @@ phase whose files are present but branded derives as `drifted`, and
 
 | phase | what it lands | verified by |
 |---|---|---|
-| `01-scaffold` | the repository, created and linked; intent, CI, tooling, identity | its PR's checks green, merged |
-| `02-site` | `apps/web` (the site and its tests); the brokered Cloudflare secrets | the convergence green (build, deploy, smoke) and both workers.dev URLs answering |
+| `01-product` | the repository, created and linked; the brokered Cloudflare secrets; then the whole site in one PR — intent, CI, tooling, identity, `apps/web` (the site and its tests) | its PR's `plan` green, merged; the convergence green (build, deploy, smoke) and both workers.dev URLs answering |
 | `03-docs` | `ai/context/deployment.md` from probed facts; prod's promotion gate and dev's push lanes restored | the final probe |
 
 ```bash
 orun new --blueprint repo-blueprint.yaml --out ~/sites/acme-notes --run-hooks \
-  --phase 01-scaffold --values ~/acme-notes.values.yaml
-# … then 02-site, then 03-docs
+  --phase 01-product --values ~/acme-notes.values.yaml
+# … then 03-docs
 ```
 
 Every later phase reads the identity back from `.rebrand/values.json` in the
@@ -121,7 +127,7 @@ orun new --blueprint repo-blueprint.yaml \
 
 | requirement | detail |
 |---|---|
-| `GITHUB_TOKEN` | fine-grained PAT: **read** on this repository; on the SITE's repository **contents write**, **pull-requests write**, **actions read+write** (`orun.run/watch@v1` resumes runs with `gh run rerun`), **checks read**; **repository create** on the owner if `01-scaffold` creates it (or pre-create it — supported) |
+| `GITHUB_TOKEN` | fine-grained PAT: **read** on this repository; on the SITE's repository **contents write**, **pull-requests write**, **actions read+write** (`orun.run/watch@v1` resumes runs with `gh run rerun`), **checks read**; **repository create** on the owner if `01-product` creates it (or pre-create it — supported) |
 | classic token caveat | a classic PAT or gh OAuth token also needs the `workflow` scope to push `.github/workflows/` |
 | pinning | the clone's `--branch <tag>` pins everything: the blueprint, its modules and its hooks' scripts all come from that one commit |
 
@@ -179,15 +185,15 @@ at the tag and refuses the whole catalogue if it 404s.
 
 | Symptom | Cause → fix |
 |---|---|
-| `01-scaffold` parks: `waiting for github for <org>` | the workspace's GitHub connection is to another account. Connect the App installation on `<org>` (console → Integrations → GitHub), then `--resume` |
-| `01-scaffold` stops at `link` | the repository is not linked to the workspace and the credential cannot link it. Allow-list it (console → Settings → Git repos) and re-run the phase |
-| `02-site` waits on the `providers` probe, then stops | Cloudflare is not connected. Connect it (console → Integrations), then re-run the phase — the probe is a wait, not a failure |
+| `01-product` parks: `waiting for github for <org>` | the workspace's GitHub connection is to another account. Connect the App installation on `<org>` (console → Integrations → GitHub), then `--resume` |
+| `01-product` stops at `link` | the repository is not linked to the workspace and the credential cannot link it. Allow-list it (console → Settings → Git repos) and re-run the phase |
+| `01-product` waits on the `providers` probe, then stops | Cloudflare is not connected. Connect it (console → Integrations), then re-run the phase — the probe is a wait, not a failure |
 | Secret WRITE fails `not_found` while listings work | the API key's role is below admin; re-mint it with the admin role |
-| Deploy lane: Authentication error (10000) | the connection's token lacks Workers Scripts Write; re-issue it, re-connect, re-run `02-site` |
-| Convergence failed AFTER the PR merged; re-running lands nothing | expected on its own — the files are on main. Re-run the phase (`--phase 02-site`, `--redo 02-site`, or the console's Retry): its `retouch` hook gives the landing a diff and the site redeploys |
-| The site's `intent.yaml` says `workspace: ws_SET_ME` | `orunWorkspace` was empty and the build ran outside a workspace; set it and re-run `01-scaffold` |
+| Deploy lane: Authentication error (10000) | the connection's token lacks Workers Scripts Write; re-issue it, re-connect, re-run `01-product` |
+| Convergence failed AFTER the PR merged; re-running lands nothing | expected on its own — the files are on main. Re-run the phase (`--phase 01-product`, `--redo 01-product`, or the console's Retry): its `retouch` hook gives the landing a diff and the site redeploys |
+| The site's `intent.yaml` says `workspace: ws_SET_ME` | `orunWorkspace` was empty and the build ran outside a workspace; set it and re-run `01-product` |
 | A bootstrap stopped before `03-docs`; prod no longer waits on stage | the gate is deferred, not dropped: run `03-docs`, or `node tooling/bootstrap/promotion.mjs --restore --file <site>/intent.yaml` |
 | `✕ input "productdomain" is required` | all four required inputs must be set on every invocation, single-phase ones included |
 | `unknown flag: --phase` or a parse error in the blueprint | the CLI is below the v2.58.11 floor |
-| `02-site` lanes fail in `build-app` resolving a dependency | the site's intent no longer pins stack-tectonic 0.19.0. 0.20.0's lane-scoped install links each job's node_modules out of its staged tree; this site's Vite build was tried there and builds, but a Next.js sibling's did not, and the pin keeps the install the e2e tier proves. `intent.yaml` says why |
-| `02-site`'s convergence reported green, then `verify` got 404 from both URLs | a second workflow ran on the push to main and the watch took its run. Only `ci.yml` may run on a push to main (`checks.yml` runs on pull requests, and `testing/coverage.test.sh` holds the rule); read the CI run on main for the real result |
+| `01-product` lanes fail in `build-app` resolving a dependency | the site's intent no longer pins stack-tectonic 0.19.0. 0.20.0's lane-scoped install links each job's node_modules out of its staged tree; this site's Vite build was tried there and builds, but a Next.js sibling's did not, and the pin keeps the install the e2e tier proves. `intent.yaml` says why |
+| `01-product`'s convergence reported green, then `verify` got 404 from both URLs | a second workflow ran on the push to main and the watch took its run. Only `ci.yml` may run on a push to main (`checks.yml` runs on pull requests, and `testing/coverage.test.sh` holds the rule); read the CI run on main for the real result |

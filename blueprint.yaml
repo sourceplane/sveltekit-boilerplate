@@ -23,8 +23,8 @@ metadata:
     demo whose server load and form actions work without JavaScript, each
     visitor's list kept in their own cookie, built by SvelteKit's own
     Cloudflare adapter into one Worker with Static Assets, and CI that deploys
-    it to stage and prod on merge. One provider, one consent, one token. Live
-    in about thirteen minutes.
+    it to stage and prod on merge. One provider, one consent, one token, one
+    landing. Live in about five minutes.
   tags: [sveltekit, svelte, vite, cloudflare, starter]
 spec:
   source:
@@ -93,7 +93,7 @@ spec:
       example: acme
 
   # ── PREVIEW ONLY. repo-blueprint.yaml's `orun.integrations/reconcile@v1`
-  # hooks mint these, brokered, during 02-site. ─────────────────────────────
+  # hooks mint these, brokered, during 01-product. ──────────────────────────
   # Transcribed from those hooks' own `keys:` and `template:` values, so
   # testing/manifest.test.sh compares this list to the document that mints
   # them. The console renders them read-only: no credential is ever typed,
@@ -117,8 +117,7 @@ spec:
     epicSlug: sveltekit-boilerplate-baselining   # = repo-blueprint.yaml's `epicSlug` default
     epicName: "SvelteKit baselining — {productname}"
     milestones:
-      - name: 01-scaffold
-      - name: 02-site
+      - name: 01-product
       - name: 03-docs
 
   bootstrap:
@@ -127,7 +126,7 @@ spec:
     blueprint: repo-blueprint.yaml
     # Summed from the phases' expectedMinutes. An estimate until a bootstrap
     # measures it.
-    expectedMinutes: 13
+    expectedMinutes: 5
     tokenChannel: ORUN_TOKEN_FILE   # how a runner hands over its refreshed token
   verify:
     urls:
