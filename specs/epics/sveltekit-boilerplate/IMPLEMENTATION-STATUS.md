@@ -8,6 +8,7 @@ the code departed from `design.md` or from the upstream template.
 | SK0 — the spec | ✅ Shipped | [#1](https://github.com/sourceplane/sveltekit-boilerplate/pull/1) |
 | SK1 — the site on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-boilerplate/pull/2) |
 | SK2 — ready to instantiate | ✅ Shipped | [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3) |
+| SK3 — a baseline | 🟡 In progress | this PR (SK-4), to be tagged `baseline-v1` |
 
 ## Departures from the upstream template
 
@@ -75,7 +76,61 @@ preview`, which has no Workers runtime); `typecheck` is upstream's `check`
 The repository's root `.gitignore` covers `.svelte-kit/`; the workspace
 lockfile replaces the template's.
 
-## Verified
+### The site's name comes from `src/lib/site.js` (SK3)
+
+`SITE_NAME` (the upstream's own "SvelteKit app", from the home page's
+heading) is the home page's heading tail and `<title>`, and the about and
+todos pages' titles read `About | …` and `Todos | …` through `pageTitle`
+(upstream: `Home`, `About`, `Todos`). It is the seam the baseline's rename
+rewrites. `src/lib/site.test.js` renders the pages and reads the name back.
+
+### `apps/web/README.md` is the app's, not the template's (SK3)
+
+The upstream README advertised "Deploy with Vercel" and a Vercel demo, and it
+ships into every site. It now describes the app and credits the template
+(MIT).
+
+## Departures from the port (SK3)
+
+| What | Before | After | Why |
+|---|---|---|---|
+| `apps/web` smoke | `grep 'SvelteKit app'` on `/` | the nav's `/todos` link on `/`, and SvelteKit's 404 page for an unknown path | the name is the owner's, and HTML-escaped when it carries `&`; the 404 proves the Worker, not just the assets |
+| `ci.yml` gate | `vars.ORUN_CI == 'true'` | skip only while `intent.yaml` names `ws_CHANGE_ME` | a bootstrap cannot set a repository variable |
+| `checks.yml` | every push and pull request | pull requests and `workflow_dispatch` | one workflow per push to main (risks SK-K) |
+| stack-tectonic | 0.18.2 | 0.19.0 | first-deploy retry (0.19.0); not 0.20.0's lane-scoped install (risks SK-J) |
+| orun lane pin | v2.78.0 | v2.78.4 | cirrus-baseline's pin |
+| `intent.yaml` | terraform `parameterDefaults`; docs pages under `specs/` | neither; docs pages `ai/context/*` | no terraform component; the pages must exist in a site |
+| discovery roots | `apps/` only on disk | `infra/`, `packages/`, `tests/` carry a `.gitkeep` | `orun validate` and `orun plan` fail on a missing root ("failed to access discovery root infra") |
+| `tasks/SK-1..3` | no `metadata` | `metadata.name` and `title` | `orun work check` (≥ v2.79) refuses them |
+
+## Verified (SK3)
+
+- `orun new --status` reads the blueprint at v2.58.11 (the bootstrap floor),
+  v2.78.4 (the lane pin) and v2.79.0; `orun validate` passes.
+- `testing/{manifest,phases,coverage,rebrand,retouch,bootstrap-defer}.test.sh`
+  green; `orun work check` clean.
+- `testing/leak.test.sh` (v2.58.11 and v2.79.0): 61 files derived; nothing of
+  the factory, nothing local or built; no provenance prose.
+- `testing/placement.test.sh` (v2.58.11 and v2.79.0; fixture "Sam's Notes &
+  Links" / `acme-inc/acme-sveltekit`): three landings; rebrand `--verify`
+  clean; workspace re-tenanted, `work:` stripped, promotion and dev lanes
+  restored; deployment record rendered; no file in the site names the
+  factory's paths; the site's own `orun plan` for the 02-site merge deploys
+  `web` to stage and prod side by side with the site's Worker name, smoke and
+  secret refs; `--resume` changes nothing.
+- `testing/e2e.test.sh` (v2.78.4 and v2.79.0): the scaffold's landing and the
+  finished site pass the Checks sequence; the stage lane's
+  `install-workspace-dependencies`, `build-app`, `verify-build-output` and
+  `deploy-dry-run` pass in a staged job tree; `wrangler dev` serves the built
+  Worker from it; the component's own smoke passes; `/` (heading and title
+  carry the escaped name), its `_app/immutable` chunks, the static files,
+  `/about` (no `<script>`), `/todos` (500 from the demo API, the hook's
+  cookie set), `POST /todos?/create` (an ActionResult) and a 404 are the
+  site's own. Re-run with the pin at 0.20.0 (lane layout): also green
+  (risks SK-J).
+- Not verified: a live bootstrap against a workspace (risks SK-H).
+
+## Verified (SK1–SK2)
 
 - Local: `svelte-check` (0 errors; 3 warnings for the template's self-closing
   `<button />`), `prettier --check`, `pnpm test` (1 test, a `svelte/server`

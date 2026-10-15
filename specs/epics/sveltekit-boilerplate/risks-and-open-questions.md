@@ -60,3 +60,73 @@ with the template's own settings — whitespace only.
 The adapter's docs ask for `nodejs_als` (AsyncLocalStorage);
 `nodejs_compat` is the superset the repository convention uses and the
 one the other ports carry.
+
+## SK-H — No live bootstrap yet (OPEN)
+
+Everything short of the platform is proven on every pull request: the card
+against the build, the blueprint read by the pinned orun, the leak gate, the
+offline bootstrap with the blueprint's own hooks, the site's own plan for the
+02-site merge, and the produced site built, dry-deployed, served and
+smoke-tested from a staged job tree. What is NOT proven is the platform's
+half — the repository created and linked, the Cloudflare token minted by
+`integrations/reconcile`, a real `wrangler deploy`, the probes against
+workers.dev. Hence the registry row is `unlisted` until one bootstrap from
+the tag has come up, as portfolio-starter-kit's first tag was (its first
+live bootstrap found two faults, carried here as SK-J and SK-K).
+
+## SK-I — A custom domain is the owner's step (ACCEPTED)
+
+Attaching a domain to a Worker needs zone-level permissions. The platform
+brokers `workers-deploy` (Workers Scripts, KV, account read — no DNS) and
+`dns-edit` only with zone ids, which a build does not have. Rather than ship a
+parked component, the site's README says how to attach the domain. Unlike the
+portfolio, nothing in the repository changes with it: the site builds no
+absolute links, and SvelteKit's form actions check a request's `Origin`
+against the host it arrived on.
+
+## SK-J — The workspace install's layout in the job tree (RESOLVED by pin, measured)
+
+portfolio-starter-kit's first live bootstrap (from its `baseline-v1`) died in
+`build-app` on both deploy lanes: stack-tectonic 0.20.0 marks the workspace
+install `scope: lane`, orun runs it once in the source checkout and stages
+every job's tree with its top-level `node_modules` as a symlink out of the
+tree, and Next 16's Turbopack refuses that. This baseline is built with the
+fix already in: stack-tectonic **0.19.0**, where the job installs inside its
+own staged tree, and an e2e tier that stages the job as orun does
+(`testing/lib/stage-job.py`) with the install layout the pinned composition
+plans.
+
+Measured for this site (2026-10-15): with the pin at 0.20.0, the same e2e
+tier is GREEN — Vite, the Cloudflare adapter, `wrangler deploy --dry-run` and
+`wrangler dev` all work through the lane's symlinked `node_modules`. The pin
+stays at 0.19.0 anyway: it is the layout the first live build proved, the
+site has one job per lane (`lane: isolated`), so a shared install saves
+nothing, and a bump is then a deliberate, tested step (`intent.yaml` says so).
+
+## SK-K — The convergence watch reads the newest run on a commit (RESOLVED)
+
+The same portfolio bootstrap's `converge` step reported green while the
+deploy lanes had failed: `orun.run/watch@v1` with `sha:` takes the newest
+workflow run for the merge commit from ANY workflow, and `checks.yml` also
+ran on the push to main. Here `checks.yml` runs on pull requests and
+`workflow_dispatch` only, so a push to main starts `ci.yml` alone, and
+`testing/coverage.test.sh` fails if a shipped workflow other than `ci.yml`
+runs on push.
+
+## SK-L — Every site inherits the demo API (ACCEPTED)
+
+SK-B travels: a site built from this baseline renders `/todos` against
+`api.svelte.dev`, which answers 500 at the time of writing, so its todos page
+shows SvelteKit's error page from day one. Neither the deploy's smoke nor
+the bootstrap's probes depend on it — the smoke reads the home page and the
+Worker's 404, the probes read `/` and `/about` — so a bootstrap is not held
+hostage to a service nobody in it owns. The site's README and operating
+contract say where the client is and what to point it at (a KV namespace).
+
+## SK-M — The name seam and the app's prettier (SETTLED)
+
+`apps/web` lints with `prettier --check .` and `singleQuote: true`; the
+rename writes the site's name with `JSON.stringify` (double quotes) so that
+a name with an apostrophe stays a valid string. The seam's one line carries
+`// prettier-ignore`, so the site's own `lint` passes under any name. The
+e2e tier runs the site's Checks after the rename with "Sam's Notes & Links".

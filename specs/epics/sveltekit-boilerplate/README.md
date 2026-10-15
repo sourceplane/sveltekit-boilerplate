@@ -8,15 +8,15 @@ This is the third port without OpenNext, on the shape astro-boilerplate set for 
 
 | Field | Value |
 |-------|-------|
-| Status | ✅ Shipped — SK0–SK2 landed (#1, #2, #3) |
-| Cluster | **SK** (SK0–SK2) |
-| Owner(s) | `apps/web` (the site, with its server-render test) |
+| Status | 🟡 SK0–SK2 shipped (#1, #2, #3); SK3 — a baseline — in progress (SK-4) |
+| Cluster | **SK** (SK0–SK3) |
+| Owner(s) | `apps/web` (the site, with its server-render tests) · the baseline (`blueprint.yaml`, `repo-blueprint.yaml`, `.baseline/`, `tooling/rebrand`, `tooling/bootstrap`, `testing/`) |
 | Builds on | `cirrus-baseline` conventions; the `astro-boilerplate` port's repository shape |
 | Upstream | [vercel/examples `framework-boilerplates/sveltekit`](https://github.com/vercel/examples/tree/main/framework-boilerplates/sveltekit) |
 | Changes | Adapter swap, SvelteKit 1.0-next → 3 (Svelte 5, Vite 8), the Cloudflare Web Analytics beacon in the layout for Vercel's web vitals; the pages, the counter, the header, the hook and the demo-API client keep their code |
 | Decisions locked | (1) SvelteKit's Cloudflare adapter, not OpenNext (SvelteKit is not Next). (2) SvelteKit 3 + adapter 8 (current majors; the current adapter needs Kit 3). (3) Kit's own `enhance` and named actions replace the pre-1.0 action protocol — the template's `form.js` goes. (4) Cloudflare Web Analytics for `web-vitals` + `VERCEL_ANALYTICS_ID`. (5) Tests live in the app (`svelte/server` rendering needs the Svelte Vite plugin). (6) The demo API (`api.svelte.dev`) stays as written — an external service, not a Vercel primitive. |
 | Gate | SK1 is the first user-visible rung. |
-| Shipped as | `main` after [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3); verified locally under `wrangler dev`, deploy gated until a workspace is linked |
+| Shipped as | `main` after [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3); verified locally under `wrangler dev`, deploy gated until a workspace is linked. SK3 makes it a baseline (design §6) |
 
 ## Read order
 
@@ -32,3 +32,4 @@ This is the third port without OpenNext, on the shape astro-boilerplate set for 
 | SK0 — the spec | this doc set and the task contracts | merged on `main` |
 | SK1 — the site on Workers | `apps/web` on SvelteKit 3 with the Cloudflare adapter, a test, green checks | `wrangler dev` serves the three pages, the assets and a 404; Checks green |
 | SK2 — ready to instantiate | README, as-built status | a reader can run, test, preview and deploy it |
+| SK3 — a baseline | card, build document, rename, bootstrap tooling, tests | a new site goes from nothing to live in three phases; Baseline CI green |
