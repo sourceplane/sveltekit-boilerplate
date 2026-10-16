@@ -106,15 +106,15 @@ that makes the copy somebody else's.
 
 | Cirrus | portfolio-starter-kit | Here | Why the difference |
 |---|---|---|---|
-| six phases | three: `01-scaffold`, `02-site`, `03-docs` | the same three | one component deploys; no data plane, no fleet, no bindings |
-| — | `02-site` places `web` + `web-tests` | `02-site` places `web` alone | the site's tests run inside `apps/web` (SK-E); there is no `tests/web` to place, retouch or partition |
+| `01-product` (the whole product in one landing), `07-domain`, `08-docs` (baseline-v22) | two: `01-product` (the whole site in one landing), `03-docs` (PK-6) | the same two (SK-5; three — `01-scaffold`, `02-site`, `03-docs` — before it) | one component deploys; no data plane, no fleet, no bindings, no domain phase |
+| — | `01-product` places `web` + `web-tests` | `01-product` places `web` alone | the site's tests run inside `apps/web` (SK-E); there is no `tests/web` to place, retouch or partition |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_D1_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | `CLOUDFLARE_API_TOKEN` (`workers-deploy`), `CLOUDFLARE_ACCOUNT_ID` | the same two | no D1 |
 | `07-domain` (parked component) | no domain phase; `SITE_URL` per environment feeds the build | no domain phase, and no `SITE_URL` | the site builds no absolute links (no sitemap, no feed, no Open Graph), so a domain attached in Cloudflare needs nothing from the repository |
 | task contracts in `tasks/` | `.baseline/tasks/` | `.baseline/tasks/` | `tasks/` is this repository's own work tree (`intent.yaml` `work:`), where an unkeyed contract is an error |
 | ships its own README | ships `.baseline/product/README.md` | the same | this README is about the baseline; a site's owner needs the site's |
 | — | `work-tree.mjs` strips `work:` from the site's intent | the same | a site has no `specs/` or `tasks/` |
 | stack-tectonic 0.20.0 (lane-scoped install) | 0.19.0 | 0.19.0 | the portfolio's Turbopack build cannot run through 0.20.0's symlinked `node_modules`; this site's Vite build can (measured, SK-J), and the pin keeps the install the first live build proved |
-| one push workflow | `checks.yml` on pull requests only | the same | `orun.run/watch@v1` takes the newest run for a commit from any workflow (SK-K) |
+| one push workflow (`ci.yml`), no `checks.yml` | `checks.yml` on pull requests only, its job skipped on bootstrap branches (`orun/BASE-…`) | the same | `orun.run/watch@v1` takes the newest run for a commit from any workflow (SK-K); a bootstrap landing is checked by `plan` alone, as Cirrus's is (SK-5) |
 | — | ships `tooling/{eslint,tsconfig,wire}` | the same; `tooling/migrations` stays | it checks a `packages/db` manifest; the site has no database and nothing it runs reads it |
 | rebrand rules for a SaaS | the source link, the `SITE_NAME` seam, the domain, the subdomain, Worker names, secret refs, the repo slug | the same rules; source links appear in docs only | the site shows no source link (the header's corner is upstream's empty `TODO`) |
 
@@ -163,7 +163,7 @@ tier builds, dry-deploys and serves the site from such a tree.
 
 **The site's CI is on from its first commit.** `ci.yml` plans nothing only
 while `intent.yaml` names the placeholder `ws_CHANGE_ME`, which this
-repository carries and no site does (the scaffold writes the site's
+repository carries and no site does (`01-product` writes the site's
 workspace, or `ws_SET_ME`, which fails loudly).
 
 **Testing without the platform.** `testing/lib/bootstrap.sh` places every

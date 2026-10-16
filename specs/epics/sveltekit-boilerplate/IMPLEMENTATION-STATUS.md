@@ -8,7 +8,8 @@ the code departed from `design.md` or from the upstream template.
 | SK0 — the spec | ✅ Shipped | [#1](https://github.com/sourceplane/sveltekit-boilerplate/pull/1) |
 | SK1 — the site on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-boilerplate/pull/2) |
 | SK2 — ready to instantiate | ✅ Shipped | [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3) |
-| SK3 — a baseline | 🟡 In progress | this PR (SK-4), to be tagged `baseline-v1` |
+| SK3 — a baseline | ✅ Shipped | [#4](https://github.com/sourceplane/sveltekit-boilerplate/pull/4) (SK-4), tagged `baseline-v1` |
+| SK4 — one landing | 🟡 In progress | this PR (SK-5), to be tagged `baseline-v2` |
 
 ## Departures from the upstream template
 
@@ -116,6 +117,31 @@ ships into every site. It now describes the app and credits the template
 | `intent.yaml` | terraform `parameterDefaults`; docs pages under `specs/` | neither; docs pages `ai/context/*` | no terraform component; the pages must exist in a site |
 | discovery roots | `apps/` only on disk | `infra/`, `packages/`, `tests/` carry a `.gitkeep` | `orun validate` and `orun plan` fail on a missing root ("failed to access discovery root infra") |
 | `tasks/SK-1..3` | no `metadata` | `metadata.name` and `title` | `orun work check` (≥ v2.79) refuses them |
+
+## One landing (SK4)
+
+cirrus-baseline's baseline-v22 builds its whole product in one landing
+(`01-product`) and checks each bootstrap pull request with `plan` alone. This
+baseline now does the same (SK-5), the port portfolio-starter-kit makes in PK-6:
+
+| Before (baseline-v1) | Now | Why |
+|---|---|---|
+| three phases: `01-scaffold`, `02-site`, `03-docs` | two: `01-product` (every module), `03-docs` (hooks only; its name kept, the gap kept, as Cirrus kept `08-docs`) | a landing has a fixed cost (place, PR, checks, merge, convergence start); nothing in the scaffold/site split was order the plan could not carry |
+| `01-scaffold` waited on Checks (install, wire fixtures, typecheck, lint, test, build) and `plan`; `02-site` merged without waiting (`wait: false`); `03-docs` waited on both | every landing waits on its PR's CI, which on `orun/BASE-…` is `plan` alone: `ci.yml` skips the lanes and `checks.yml` now skips its job | the convergence on main installs, builds, deploys and smoke-tests the site for real, and this baseline's own CI runs the Checks over a bootstrapped tree at the tag being built (e2e); Checks on the PR was the same build twice, and most of each landing's wait |
+| the brokered secrets minted in `02-site`'s `pre` | minted in `01-product`'s `post`, after `repo` and `link`, before `land` | the repository exists and is linked before a secret is written for its project — Cirrus's order |
+| `02-site` seeded the lockfile from the baseline's, then pruned | `pnpm install --lockfile-only` only confirms the placed lockfile | the whole tree is placed at once, so the complete lockfile is already the right one |
+| `.baseline/tasks/01-scaffold`, `02-site` | `.baseline/tasks/01-product` (`affects: [web]` — the retouch set; the site's tests run inside it) | one landing, one task |
+| the offline bootstrap committed one landing per phase from an empty repository | the repository's empty first commit, then one per phase | on the platform the first pull request opens against an empty "Initial commit" by `orun`; it is the base the one landing's push is planned against (`testing/placement.test.sh` §4, `testing/e2e.test.sh` §2) |
+| e2e ran the Checks at the scaffold's landing and at the finished site | at the finished site only | there is no scaffold landing, and no landing waits on Checks |
+
+Not measured: this baseline has not been bootstrapped live yet. The one
+console bootstrap attempted, on 2026-10-15 (workspace `sveltekit-live`,
+`bst_1G0YCW84`), never started — the platform's cloud build sandbox failed
+to provision ("Provisioning failed: daytona POST sandbox: 400 from
+provider"), a platform capacity failure, not this baseline's. The estimate
+here is 5 minutes (4 + 1), unmeasured; the sibling site baselines measured
+7m07s–8m43s from the console on the three-landing shape. It is to be
+replaced by the first bootstrap from `baseline-v2` (risks SK-H).
 
 ## Verified (SK3)
 

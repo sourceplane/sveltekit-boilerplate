@@ -70,7 +70,7 @@ one the other ports carry.
 Everything short of the platform is proven on every pull request: the card
 against the build, the blueprint read by the pinned orun, the leak gate, the
 offline bootstrap with the blueprint's own hooks, the site's own plan for the
-02-site merge, and the produced site built, dry-deployed, served and
+01-product merge, and the produced site built, dry-deployed, served and
 smoke-tested from a staged job tree. What is NOT proven is the platform's
 half — the repository created and linked, the Cloudflare token minted by
 `integrations/reconcile`, a real `wrangler deploy`, the probes against

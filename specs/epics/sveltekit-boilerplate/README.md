@@ -8,8 +8,8 @@ This is the third port without OpenNext, on the shape astro-boilerplate set for 
 
 | Field | Value |
 |-------|-------|
-| Status | 🟡 SK0–SK2 shipped (#1, #2, #3); SK3 — a baseline — in progress (SK-4) |
-| Cluster | **SK** (SK0–SK3) |
+| Status | 🟡 SK0–SK3 shipped (#1–#4); SK4 — one landing — in progress (SK-5) |
+| Cluster | **SK** (SK0–SK4) |
 | Owner(s) | `apps/web` (the site, with its server-render tests) · the baseline (`blueprint.yaml`, `repo-blueprint.yaml`, `.baseline/`, `tooling/rebrand`, `tooling/bootstrap`, `testing/`) |
 | Builds on | `cirrus-baseline` conventions; the `astro-boilerplate` port's repository shape |
 | Upstream | [vercel/examples `framework-boilerplates/sveltekit`](https://github.com/vercel/examples/tree/main/framework-boilerplates/sveltekit) |
@@ -33,3 +33,4 @@ This is the third port without OpenNext, on the shape astro-boilerplate set for 
 | SK1 — the site on Workers | `apps/web` on SvelteKit 3 with the Cloudflare adapter, a test, green checks | `wrangler dev` serves the three pages, the assets and a 404; Checks green |
 | SK2 — ready to instantiate | README, as-built status | a reader can run, test, preview and deploy it |
 | SK3 — a baseline | card, build document, rename, bootstrap tooling, tests | a new site goes from nothing to live in three phases; Baseline CI green |
+| SK4 — one landing | the site in one landing, each bootstrap landing checked by `plan` alone (cirrus-baseline baseline-v22's shape) | a site bootstrapped from the next tag is live on stage and prod; Baseline CI green |
