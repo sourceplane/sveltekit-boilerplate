@@ -9,7 +9,8 @@ the code departed from `design.md` or from the upstream template.
 | SK1 — the site on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-boilerplate/pull/2) |
 | SK2 — ready to instantiate | ✅ Shipped | [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3) |
 | SK3 — a baseline | ✅ Shipped | [#4](https://github.com/sourceplane/sveltekit-boilerplate/pull/4) (SK-4), tagged `baseline-v1` |
-| SK4 — one landing | 🟡 In progress | this PR (SK-5), to be tagged `baseline-v2` |
+| SK4 — one landing | ✅ Shipped (offline-proven; not yet bootstrapped live, risk SK-H) | [#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5) (SK-5) — on `main`, not yet tagged |
+| SK5 — the cirrus standard | ✅ Shipped | SK-6 — on `main` after `baseline-v1`, not yet tagged |
 
 ## Departures from the upstream template
 
@@ -25,7 +26,7 @@ the code departed from `design.md` or from the upstream template.
 The framework-forced moves, file by file (the full table is in
 `design.md`): `svelte.config.js` → `vite.config.js` (`methodOverride`
 gone); `src/hooks.js` → `src/hooks.server.js` (`Handle` from
-`@sveltejs/kit/hooks`, body unchanged); `$lib/…` → `#lib/…` (`package.json`
+`@sveltejs/kit/hooks`, body unchanged; the hook was deleted in SK3, below); `$lib/…` → `#lib/…` (`package.json`
 `imports`); `$app/stores` → `$app/state` and `sveltekit:prefetch` →
 `data-sveltekit-preload-data="hover"` in `Header.svelte`; `hydrate = dev`
 → `csr = dev` and `router = browser` dropped in `about/+page.js`; the
@@ -54,7 +55,8 @@ in `src/env.js`, public + static, empty by default) is set at build.
 ### `cookie ^1.1` for `^0.4`, `@types/cookie` dropped
 
 The hook's `cookie.parse`/`cookie.serialize` are unchanged; 1.x ships its
-types, and 2.x (what Kit 3 itself depends on) renamed the functions.
+types, and 2.x (what Kit 3 itself depends on) renamed the functions. (SK1–SK2:
+SK3 removed the hook and the `cookie` dependency with the demo API — below.)
 
 ### Formatted once with the template's own prettier settings
 
@@ -142,6 +144,46 @@ provider"), a platform capacity failure, not this baseline's. The estimate
 here is 5 minutes (4 + 1), unmeasured; the sibling site baselines measured
 7m07s–8m43s from the console on the three-landing shape. It is to be
 replaced by the first bootstrap from `baseline-v2` (risks SK-H).
+
+## The cirrus standard (SK5)
+
+Nothing about the site changed. What changed is the baseline around it:
+
+| What | Before | After | Why |
+|---|---|---|---|
+| orun pin | `kiox.yaml` (v2.15.0) + `kiox.lock`, shipped to every site | gone; orun is pinned where it runs, the `orun-action` `version:` in each workflow | nothing ran the kiox pin, and it disagreed with the lanes (v2.78.4) |
+| `root-kiox`, `root-kiox-lock` modules | in `01-product` | removed (`testing/phases.test.sh`, the rebrand's skip list and `docs/phases/01-product.md` follow) | a site is placed with 62 files (61 − 2 + 3): no kiox, plus the docs below |
+| component docs | none | `apps/web/docs/` — `overview.md`, `architecture.md`, `runbook.md` | cirrus-baseline documents every component; the workspace Docs library renders `docs/` beside each `component.yaml` |
+| `apps/web/.prettierignore` | build output, caches, lockfiles | plus `/docs` | the app's `lint` is `prettier --check .`, which failed the site's Checks on the generated pages (tables written unpadded); they are checked against the manifest instead, and `pnpm format` must not rewrite them |
+| how the docs stay true | — | `tooling/catalog/gen-component-docs.py` derives them from the manifest, the Worker config and package scripts; Baseline CI runs it with `--check` | a hand-written copy of a manifest drifts silently |
+| context pack | `operations.md`, `deployment.md` | plus `current.md`, `decisions.md`, `open-risks.md` | cirrus-baseline's shape; the three new pages are this repository's own and no module places them (the leak gate still allows exactly two) |
+| status | SK4 "in progress, this PR, to be tagged `baseline-v2`"; `design.md` naming the deleted `src/hooks.server.js` and `cookie` as kept; the plan's SK1 naming the demo API, and no SK4 section | SK4 shipped ([#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5)), on `main`, untagged (`baseline-v1` is SK3); the hook and the demo API marked as replaced by the cookie store (SK-L); an SK4 section in the plan | the documents had not caught up with the merge and with SK3 |
+
+## Verified (SK5)
+
+Over the whole of `main` as it now stands — SK4's one landing included,
+which had no "Verified" section of its own:
+
+- `testing/{manifest,phases,coverage,rebrand,retouch,bootstrap-defer}.test.sh`
+  green; `gen-component-docs.py --check` green (1 component, 3 pages).
+- `testing/leak.test.sh` at v2.58.11 (the blueprint job's pin): 62 files
+  derived (61 − 2 kiox + 3 docs pages); `ai/context` still exactly the two
+  declared pages; none of the 16 factory paths ships or is named, the
+  generated pages included.
+- `testing/placement.test.sh` at v2.58.11: 62 files placed; the two phases
+  (`01-product`, `03-docs`) landed over an empty initial commit, the site
+  branded, re-tenanted, gates restored, record rendered; the site's own plan deploys
+  `web` to stage and prod side by side; `--resume` a no-op.
+- `pnpm install --frozen-lockfile`, `wire:fixture` (no diff), typecheck
+  (`svelte-check`: 0 errors, the template's 3 warnings), lint (`prettier
+  --check .`), test (3 files, 11 tests), build green.
+- `testing/e2e.test.sh` at v2.78.4 (the product job's pin) green: the
+  finished site passes the Checks sequence — which first FAILED on the
+  generated pages under `prettier --check .`, hence `/docs` in
+  `apps/web/.prettierignore`; the stage lane's steps in the staged job tree;
+  `wrangler dev` serves the built Worker, the component's smoke passes, and
+  `/todos` creates, toggles, edits and deletes through the visitor's cookie.
+- `orun task check SK-6` complete.
 
 ## Verified (SK3)
 

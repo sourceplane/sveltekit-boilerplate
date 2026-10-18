@@ -78,6 +78,11 @@ workers.dev. Hence the registry row is `unlisted` until one bootstrap from
 the tag has come up, as portfolio-starter-kit's first tag was (its first
 live bootstrap found two faults, carried here as SK-J and SK-K).
 
+2026-10-15: the one console bootstrap attempted (workspace `sveltekit-live`,
+`bst_1G0YCW84`) never started — the platform's cloud build sandbox failed to
+provision. Nothing of this baseline ran, so it answers nothing here; SK-H
+stays OPEN.
+
 ## SK-I — A custom domain is the owner's step (ACCEPTED)
 
 Attaching a domain to a Worker needs zone-level permissions. The platform

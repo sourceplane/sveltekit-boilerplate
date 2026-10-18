@@ -15,3 +15,8 @@ yarn.lock
 # Build and tool caches
 /.wrangler
 /.turbo
+
+# The component's pages (docs/overview.md, architecture.md, runbook.md) are
+# generated from what it declares and checked against it in CI: formatting
+# them by hand would only make them drift.
+/docs
