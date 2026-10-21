@@ -9,8 +9,8 @@ the code departed from `design.md` or from the upstream template.
 | SK1 — the site on Workers | ✅ Shipped | [#2](https://github.com/sourceplane/sveltekit-boilerplate/pull/2) |
 | SK2 — ready to instantiate | ✅ Shipped | [#3](https://github.com/sourceplane/sveltekit-boilerplate/pull/3) |
 | SK3 — a baseline | ✅ Shipped | [#4](https://github.com/sourceplane/sveltekit-boilerplate/pull/4) (SK-4), tagged `baseline-v1` |
-| SK4 — one landing | ✅ Shipped (offline-proven; not yet bootstrapped live, risk SK-H) | [#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5) (SK-5) — on `main`, not yet tagged |
-| SK5 — the cirrus standard | ✅ Shipped | SK-6 — on `main` after `baseline-v1`, not yet tagged |
+| SK4 — one landing | ✅ Shipped (offline-proven; not yet bootstrapped live, risk SK-H) | [#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5) (SK-5), tagged `baseline-v2` — the first tag of the one-landing shape |
+| SK5 — the cirrus standard | ✅ Shipped | [#6](https://github.com/sourceplane/sveltekit-boilerplate/pull/6) (SK-6), [#7](https://github.com/sourceplane/sveltekit-boilerplate/pull/7) (SK-7), tagged `baseline-v2` |
 
 ## Departures from the upstream template
 
@@ -158,6 +158,48 @@ Nothing about the site changed. What changed is the baseline around it:
 | how the docs stay true | — | `tooling/catalog/gen-component-docs.py` derives them from the manifest, the Worker config and package scripts; Baseline CI runs it with `--check` | a hand-written copy of a manifest drifts silently |
 | context pack | `operations.md`, `deployment.md` | plus `current.md`, `decisions.md`, `open-risks.md` | cirrus-baseline's shape; the three new pages are this repository's own and no module places them (the leak gate still allows exactly two) |
 | status | SK4 "in progress, this PR, to be tagged `baseline-v2`"; `design.md` naming the deleted `src/hooks.server.js` and `cookie` as kept; the plan's SK1 naming the demo API, and no SK4 section | SK4 shipped ([#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5)), on `main`, untagged (`baseline-v1` is SK3); the hook and the demo API marked as replaced by the cookie store (SK-L); an SK4 section in the plan | the documents had not caught up with the merge and with SK3 |
+
+### The subdomain from the Cloudflare connection (SK-7)
+
+The card's `subdomain` input was typed by hand, though it belongs to the
+Cloudflare account the same way its id does and has exactly one right
+answer; a wrong value surfaced only after deploy, in the deploy's smoke and
+`01-product`'s probes. It now declares `from:
+connection.cloudflare.workersSubdomain`, as cirrus-baseline's card does since
+baseline-v23: the Cloudflare integration reads the subdomain at connect and on
+its hourly health check, the bootstrap door fills the input from the
+connection the build is bound to (the one `CLOUDFLARE_ACCOUNT_ID` and the
+deploy token come from), the console renders no field for it, and an account
+with no workers.dev subdomain is refused at the door. Nothing a site runs
+changes.
+
+- `blueprint.yaml`: the `from:` source and the reason, at the input; key,
+  label, pattern, help and example unchanged.
+- `testing/manifest.test.sh`: cirrus-baseline's rule, byte for byte — the
+  source is accepted, and a `connection.<provider>.…` source whose provider
+  `spec.requires.integrations` does not list fails (the card lists
+  `cloudflare`).
+- `repo-blueprint.yaml`, `BOOTSTRAP.md`, `docs/phases/README.md`: a console or
+  `--from bst_…` build reads it from the connection; only a hand-run build
+  passes `--set subdomain`. The default is unchanged.
+
+`baseline-v2` carries this, SK5 and SK4: it is the first tag of the
+one-landing shape, and the bootstrap that closes SK-H is the first from it.
+
+Verified:
+
+- `testing/{manifest,phases,coverage,rebrand,retouch,bootstrap-defer}.test.sh`
+  green; `gen-component-docs.py --check` green (1 component).
+- Mutation: `cloudflare` removed from `spec.requires.integrations` →
+  `manifest.test.sh` fails with exactly one finding, `inputs[subdomain].from
+  is 'connection.cloudflare.workersSubdomain' but spec.requires.integrations
+  does not list cloudflare`; restored, green.
+- `orun new --status` (v2.58.11): `01-product` pending (62 files), `03-docs`
+  hook-only. `testing/leak.test.sh` (v2.58.11): 62 files derived;
+  `ai/context` still exactly the two declared pages.
+- `testing/placement.test.sh` (v2.58.11, as `baseline.yml` runs it): 62
+  files placed, both landings, `--resume` a no-op.
+- `orun task check SK-7` complete.
 
 ## Verified (SK5)
 

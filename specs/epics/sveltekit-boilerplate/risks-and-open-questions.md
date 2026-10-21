@@ -81,7 +81,8 @@ live bootstrap found two faults, carried here as SK-J and SK-K).
 2026-10-15: the one console bootstrap attempted (workspace `sveltekit-live`,
 `bst_1G0YCW84`) never started — the platform's cloud build sandbox failed to
 provision. Nothing of this baseline ran, so it answers nothing here; SK-H
-stays OPEN.
+stays OPEN, and closes with the first bootstrap from `baseline-v2` — the
+first tag of the one-landing shape (SK4), carrying SK5.
 
 ## SK-I — A custom domain is the owner's step (ACCEPTED)
 

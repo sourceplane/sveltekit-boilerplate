@@ -7,7 +7,7 @@ lists only what is still live, so it should be short.
 
 | ID | Risk | State | What closes it |
 |---|---|---|---|
-| SK-H | No live bootstrap yet: the repository created and linked, the Cloudflare token minted, a real `wrangler deploy` and the probes are unproven. The one attempt (2026-10-15) never started — the platform's build sandbox failed to provision | OPEN | One bootstrap from a tag against a workspace |
+| SK-H | No live bootstrap yet: the repository created and linked, the Cloudflare token minted, a real `wrangler deploy` and the probes are unproven. The one attempt (2026-10-15) never started — the platform's build sandbox failed to provision | OPEN | One bootstrap from `baseline-v2` (the first tag of the one-landing shape) against a workspace |
 
 Accepted, and worth knowing before you change them: SK-G (`nodejs_compat`
 for the adapter's `nodejs_als`), SK-I (a custom domain is the owner's step).

@@ -19,8 +19,8 @@ its own repository and takes it to live on stage and prod in one landing
 
 | | |
 |---|---|
-| Latest tag | `baseline-v1` (SK3, [#4](https://github.com/sourceplane/sveltekit-boilerplate/pull/4) — the three-phase shape: `01-scaffold`, `02-site`, `03-docs`) |
-| On `main` since | SK4 — one landing ([#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5), `01-product` + `03-docs`); SK5 — the cirrus standard (no kiox, generated component docs, this context pack). Neither is tagged |
+| Latest tag | `baseline-v2` — SK4, one landing ([#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5), `01-product` + `03-docs`; the first tag of that shape), and SK5, the cirrus standard (no kiox, generated component docs, this context pack, and the workers.dev subdomain read from the Cloudflare connection instead of asked) |
+| Before it | `baseline-v1` (SK3, [#4](https://github.com/sourceplane/sveltekit-boilerplate/pull/4) — the three-phase shape: `01-scaffold`, `02-site`, `03-docs`) |
 | Proven live | No. Everything short of the platform is proven offline in Baseline CI. The one console bootstrap attempted (2026-10-15, `bst_1G0YCW84`) never started: the platform's build sandbox failed to provision (risk SK-H). The card's 5 minutes is an estimate |
 
 ## Where to read
@@ -35,7 +35,5 @@ its own repository and takes it to live on stage and prod in one landing
 
 ## Next
 
-1. Cut `baseline-v2` with `tag.yml` from `main`, so the registry can pin the
-   one-landing shape (SK4) and SK5.
-2. Bootstrap one site from it against a workspace and record its timings in
-   place of the estimate (closes SK-H).
+1. Bootstrap one site from `baseline-v2` against a workspace and record its
+   timings in place of the estimate (closes SK-H).
