@@ -45,7 +45,7 @@ one that builds:
 | 1.0-next.428 | SvelteKit 3 |
 |---|---|
 | `svelte.config.js` with `kit.adapter` and `kit.methodOverride` | `sveltekit({ adapter })` in `vite.config.js` (the file is no longer read); `methodOverride` no longer exists |
-| `src/hooks.js` `handle` | `src/hooks.server.js`, the `Handle` type from `@sveltejs/kit/hooks`; the body is unchanged |
+| `src/hooks.js` `handle` | `src/hooks.server.js`, the `Handle` type from `@sveltejs/kit/hooks`; the body is unchanged (SK1–SK2; SK3 deleted the hook — its only job, the `userid` cookie for the demo API, went with the API: risk SK-L) |
 | `$lib/Counter.svelte`, `$lib/header/Header.svelte` | `#lib/…` (declared in `package.json` `imports`, extensions required) |
 | `$page` from `$app/stores`; `sveltekit:prefetch` | `page` from `$app/state`; `data-sveltekit-preload-data="hover"` |
 | `hydrate = dev`, `router = browser` (about) | `csr = dev`; the router option is gone (the client router is always on); `$app/env` is the module's name again |
@@ -53,7 +53,7 @@ one that builds:
 | `throw error(status)` | `error(status)` |
 | `enhance` from `$lib/form` with `pending`/`result` callbacks | `enhance` from `$app/forms`: the submit callback does what `pending` did; the default behaviour resets the form and refreshes the data, which is what `result` did |
 | `jsconfig.json` extending `.svelte-kit/tsconfig.json` | extending `$app/tsconfig`, with its own `include` |
-| `cookie ^0.4` + `@types/cookie` | `cookie ^1.1` (bundled types); 2.x renamed `parse`/`serialize` |
+| `cookie ^0.4` + `@types/cookie` | `cookie ^1.1` (bundled types); 2.x renamed `parse`/`serialize` (SK1–SK2; SK3 dropped the dependency with the hook) |
 
 The components keep Svelte 3 syntax (`export let`, `$:`, `on:click`,
 `<slot />`, `spring`): Svelte 5 runs it in legacy mode, and migrating them

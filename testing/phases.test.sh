@@ -42,8 +42,8 @@ PARTITION = {
     # One deployable component, `web`: the site's tests run inside it
     # (apps/web's vitest), so there is no test package to place beside it.
     "01-product": ["ai-deployment", "ai-operations", "discovery-roots", "github-workflows",
-                   "rebrand-values", "root-gitignore", "root-intent", "root-kiox",
-                   "root-kiox-lock", "root-package-json", "root-pnpm-lock",
+                   "rebrand-values", "root-gitignore", "root-intent",
+                   "root-package-json", "root-pnpm-lock",
                    "root-pnpm-workspace", "root-readme", "root-turbo", "tooling-eslint",
                    "tooling-tsconfig", "tooling-wire", "vscode", "web"],
     "03-docs": [],
