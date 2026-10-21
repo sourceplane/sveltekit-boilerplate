@@ -66,7 +66,9 @@ platform's first pull request does.
   `03-docs`; the card's programme names the same two
 - a bootstrap landing is checked by `plan` alone
 - `Baseline CI` is green, and a site bootstrapped from the next tag is live
-  on stage and prod (the live half is still open: risk SK-H)
+  on stage and prod (the live half is still open: `baseline-v2` is the
+  first tag that carries SK4, and no site has been bootstrapped from it —
+  risk SK-H)
 
 ## SK5 — the cirrus standard ✅
 
@@ -85,8 +87,14 @@ itself changing.
   `open-risks.md` beside the two pages a site ships with — this
   repository's own, so no module places them.
 - **Status that agrees with the tags.** SK3 is tagged `baseline-v1`; SK4 is
-  merged and untagged; the design and plan describe the cookie store SK3
-  built.
+  merged (untagged until `baseline-v2`); the design and plan describe the
+  cookie store SK3 built.
+- **The subdomain from the Cloudflare connection (SK-7).** The card's
+  `subdomain` input declares `from: connection.cloudflare.workersSubdomain`,
+  as cirrus-baseline's does since baseline-v23: the bootstrap door fills it
+  from the connection the build is bound to, so the console asks for nothing
+  a typo could get wrong. `testing/manifest.test.sh` takes cirrus-baseline's
+  rule, which requires the provider in `spec.requires.integrations`.
 
 **Done when**
 - `git grep -i kiox` finds nothing outside this milestone's own record
