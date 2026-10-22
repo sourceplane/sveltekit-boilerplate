@@ -84,6 +84,10 @@ and attach it to the Worker (dashboard → Workers & Pages →
 `sveltekit-boilerplate-web-prod` → Settings → Domains & Routes → Add → Custom
 domain). Do the same for stage with a subdomain if you want one.
 
-Nothing in the repository changes: the site builds no absolute links, so it
-answers on whatever origin serves it, and SvelteKit's form actions check a
-request's `Origin` against the host it arrived on.
+Nothing else has to change: the site builds no absolute links, so it answers
+on whatever origin serves it, and SvelteKit's form actions check a request's
+`Origin` against the host it arrived on. The repository names the domain in
+one place, `BASE_DOMAIN` in `intent.yaml` (dev, stage and prod), which the
+site was born with as the reserved placeholder
+`sveltekit-boilerplate.example.com`. Replace it with your domain in the same
+change that records it.

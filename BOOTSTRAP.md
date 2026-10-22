@@ -57,7 +57,7 @@ cd sveltekit-boilerplate
 orun new --blueprint repo-blueprint.yaml \
   --out ~/sites/acme-notes --run-hooks --resume \
   --set reponame=acme-notes --set productname="Acme Notes" \
-  --set productdomain=acme.dev --set githuborg=acme-inc \
+  --set githuborg=acme-inc \
   --set orunWorkspace=ws_XXXXXXXX \
   --set subdomain=<workers-dev-subdomain>
 ```
@@ -94,9 +94,13 @@ orun new --blueprint repo-blueprint.yaml --out ~/sites/acme-notes --run-hooks \
 
 Every later phase reads the identity back from `.rebrand/values.json` in the
 placed tree, but the blueprint's **required** inputs — `reponame`,
-`productname`, `productdomain`, `githuborg` — are validated before anything
-runs, so pass them every time (a `--values` file is easier). The full guide,
-one page per phase: [docs/phases/README.md](docs/phases/README.md).
+`productname`, `githuborg` — are validated before anything runs, so pass them
+every time (a `--values` file is easier). The domain is not one of them: the
+site goes live on workers.dev, and `productdomain` defaults to empty, which
+brands the reserved placeholder `<reponame>.example.com` into `BASE_DOMAIN`
+for an owner to replace when they attach a domain (README, "Custom domain").
+Pass `--set productdomain=` only for a site that already has its domain.
+The full guide, one page per phase: [docs/phases/README.md](docs/phases/README.md).
 
 | flag | what it does |
 |---|---|
@@ -145,8 +149,9 @@ orun new --blueprint repo-blueprint.yaml \
   (`apps/web/src/routes/todos/store.js`), so the site depends on no third
   party. To share a list across devices, swap the store's `read`/`write`
   for a KV namespace.
-- **Custom domain**: attach it to the Worker in Cloudflare (the site's
-  README, "Custom domain"); nothing in the repository changes, because the
+- **Custom domain**: attach it to the Worker in Cloudflare, and replace the
+  placeholder `<reponame>.example.com` in `intent.yaml`'s `BASE_DOMAIN` with
+  it (the site's README, "Custom domain"); nothing else changes, because the
   site builds no absolute links. There is no domain phase: attaching a domain
   needs zone permissions the brokered `workers-deploy` token does not carry.
 - **Refresh the record**: re-run `--phase 03-docs`; it is idempotent.
@@ -199,7 +204,7 @@ at the tag and refuses the whole catalogue if it 404s.
 | Convergence failed AFTER the PR merged; re-running lands nothing | expected on its own — the files are on main. Re-run the phase (`--phase 01-product`, `--redo 01-product`, or the console's Retry): its `retouch` hook gives the landing a diff and the site redeploys |
 | The site's `intent.yaml` says `workspace: ws_SET_ME` | `orunWorkspace` was empty and the build ran outside a workspace; set it and re-run `01-product` |
 | A bootstrap stopped before `03-docs`; prod no longer waits on stage | the gate is deferred, not dropped: run `03-docs`, or `node tooling/bootstrap/promotion.mjs --restore --file <site>/intent.yaml` |
-| `✕ input "productdomain" is required` | all four required inputs must be set on every invocation, single-phase ones included |
+| `✕ input "productname" is required` | all three required inputs (`reponame`, `productname`, `githuborg`) must be set on every invocation, single-phase ones included |
 | `unknown flag: --phase` or a parse error in the blueprint | the CLI is below the v2.58.11 floor |
 | `01-product` lanes fail in `build-app` resolving a dependency | the site's intent no longer pins stack-tectonic 0.19.0. 0.20.0's lane-scoped install links each job's node_modules out of its staged tree; this site's Vite build was tried there and builds, but a Next.js sibling's did not, and the pin keeps the install the e2e tier proves. `intent.yaml` says why |
 | `01-product`'s convergence reported green, then `verify` got 404 from both URLs | a second workflow ran on the push to main and the watch took its run. Only `ci.yml` may run on a push to main (`checks.yml` runs on pull requests, and `testing/coverage.test.sh` holds the rule); read the CI run on main for the real result |
