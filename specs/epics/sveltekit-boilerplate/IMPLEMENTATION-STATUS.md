@@ -11,6 +11,7 @@ the code departed from `design.md` or from the upstream template.
 | SK3 — a baseline | ✅ Shipped | [#4](https://github.com/sourceplane/sveltekit-boilerplate/pull/4) (SK-4), tagged `baseline-v1` |
 | SK4 — one landing | ✅ Shipped (offline-proven; not yet bootstrapped live, risk SK-H) | [#5](https://github.com/sourceplane/sveltekit-boilerplate/pull/5) (SK-5), tagged `baseline-v2` — the first tag of the one-landing shape |
 | SK5 — the cirrus standard | ✅ Shipped | [#6](https://github.com/sourceplane/sveltekit-boilerplate/pull/6) (SK-6), [#7](https://github.com/sourceplane/sveltekit-boilerplate/pull/7) (SK-7), tagged `baseline-v2` |
+| SK6 — the domain is set later | ✅ Shipped | [#8](https://github.com/sourceplane/sveltekit-boilerplate/pull/8) (SK-8), tagged `baseline-v3` |
 
 ## Departures from the upstream template
 
@@ -200,6 +201,55 @@ Verified:
 - `testing/placement.test.sh` (v2.58.11, as `baseline.yml` runs it): 62
   files placed, both landings, `--resume` a no-op.
 - `orun task check SK-7` complete.
+
+## The domain is set later (SK6, SK-8)
+
+The console asked for the site's domain, with help text that said it did not
+need to exist — and nothing in the build needed one: the site answers on
+workers.dev from its first deploy, it builds no absolute links (SvelteKit's
+form actions check a request's `Origin` against the host it arrived on), and
+the one place the repository names the domain is `BASE_DOMAIN` in
+`intent.yaml`, for dev, stage and prod. A domain is an owner's step after the
+bootstrap (README, "Custom domain"), so the form no longer asks for it.
+
+- `blueprint.yaml` declares no `productdomain` input; the console's Product
+  step asks for the site's name alone.
+- `repo-blueprint.yaml`'s `productdomain` is optional, default empty. A
+  hand-run build may still pass `--set productdomain=` for a site that
+  already has its domain. Nothing else in the build reads it: no hook, probe
+  or `when:` names it, only the `.rebrand/values.json` template, which
+  writes `""`.
+- `rebrand.mjs` no longer requires it. Empty, it brands the reserved
+  placeholder `<reponame>.example.com` (RFC 2606 — never someone else's
+  domain) where the domain goes, so setting it later is replacing one
+  string; the product README and `ai/context/operations.md` say so (they had
+  said nothing in the repository changes, which was true of the site but not
+  of `BASE_DOMAIN`).
+- `testing/fixtures/acme.json` carries no domain, so the leak gate and the
+  offline bootstrap exercise exactly what a console build supplies;
+  `testing/rebrand.test.sh` pins the placeholder for an absent and an empty
+  domain; `baseline.yml`'s blueprint read sets no domain.
+
+Nothing that needs a domain was removed — it waits for one.
+
+Verified:
+
+- `testing/{manifest,phases,coverage,rebrand,retouch,bootstrap-defer}.test.sh`
+  green (`rebrand.test.sh`: 26 checks, two of them new — and those two fail
+  against the old `rebrand.mjs`); `gen-component-docs.py --check` green (1
+  component).
+- `orun new --status` (v2.58.11) with no `productdomain`: `01-product`
+  pending (62 files). `testing/leak.test.sh` (v2.58.11): 62 files derived;
+  `ai/context` still exactly the two declared pages.
+- `testing/placement.test.sh` (v2.58.11, as `baseline.yml` runs it): 62
+  files placed, both landings, branded, the site's own `orun plan` green,
+  `--resume` a no-op.
+- The offline bootstrap's site, kept and read: `.rebrand/values.json` has
+  `"productdomain": ""`; `intent.yaml`'s `BASE_DOMAIN` is
+  `acme-sveltekit.example.com` in all three environments, and the README
+  and `ai/context/operations.md` name that same string (5 lines, 3 files);
+  `rebrand --verify` finds no leftover.
+- `orun task check SK-8` complete.
 
 ## Verified (SK5)
 
