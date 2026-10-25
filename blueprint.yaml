@@ -24,7 +24,7 @@ metadata:
     visitor's list kept in their own cookie, built by SvelteKit's own
     Cloudflare adapter into one Worker with Static Assets, and CI that deploys
     it to stage and prod on merge. One provider, one consent, one token, one
-    landing. Live in about five minutes.
+    landing. Live in about four minutes.
   tags: [sveltekit, svelte, vite, cloudflare, starter]
 spec:
   source:
@@ -106,11 +106,12 @@ spec:
       from: connection.cloudflare.workersSubdomain
 
   # ── PREVIEW ONLY. repo-blueprint.yaml's `orun.integrations/reconcile@v1`
-  # hooks mint these, brokered, during 01-product. ──────────────────────────
-  # Transcribed from those hooks' own `keys:` and `template:` values, so
-  # testing/manifest.test.sh compares this list to the document that mints
-  # them. The console renders them read-only: no credential is ever typed,
-  # shown or stored. Keys that already exist are kept.
+  # hook mints these, brokered, during 01-product. ──────────────────────────
+  # Transcribed from that hook's own `secrets:` list (each key and its
+  # `template:`), so testing/manifest.test.sh compares this list to the
+  # document that mints them. The console renders them read-only: no
+  # credential is ever typed, shown or stored. Keys that already exist are
+  # kept.
   secrets:
     - key: CLOUDFLARE_API_TOKEN
       provider: cloudflare
@@ -137,9 +138,9 @@ spec:
     # THE BUILD DOCUMENT. There is no umbrella workflow and no agent brief:
     # every phase is declared in it and orun runs it.
     blueprint: repo-blueprint.yaml
-    # Summed from the phases' expectedMinutes. An estimate until a bootstrap
-    # measures it.
-    expectedMinutes: 5
+    # Summed from the phases' expectedMinutes (3 + 1). An estimate until a
+    # bootstrap of this shape measures it.
+    expectedMinutes: 4
     tokenChannel: ORUN_TOKEN_FILE   # how a runner hands over its refreshed token
   verify:
     urls:
