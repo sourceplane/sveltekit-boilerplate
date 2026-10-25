@@ -106,7 +106,6 @@ devices, swap `store.js`'s `read`/`write` for a KV namespace.
 
 | Workflow | What it runs | Ships to a site |
 |---|---|---|
-| `checks.yml` | install, wire fixtures, typecheck, lint, test, build — every PR (not pushes: on main, `ci.yml` must be the only run a commit has, because the bootstrap's convergence watch takes the newest one) | yes |
-| `ci.yml` | the Orun pipeline: `orun plan --changed`, then one job per lane; deploys stage → prod on merge. It plans nothing while `intent.yaml` names the placeholder workspace `ws_CHANGE_ME`, as this repository does | yes |
-| `baseline.yml` | the baseline's own tiers: contract tests, the blueprint read by the pinned orun, the leak gate, the offline bootstrap, the site built, dry-deployed and served | no |
+| `ci.yml` | the Orun pipeline, and the only workflow a site carries: `orun plan --changed`, then one job per lane. A pull request runs the verify lanes (the site built and dry-deployed per environment; they do not typecheck, lint or run the tests), except the bootstrap's own landings (`orun/BASE-*`), where `plan` alone is the check; a merge deploys stage → prod. It plans nothing while `intent.yaml` names the placeholder workspace `ws_CHANGE_ME`, as this repository does | yes |
+| `baseline.yml` | the baseline's own tiers: contract tests, the blueprint read by the pinned orun, the leak gate, the offline bootstrap, the site installed, type-checked, linted, tested, built, dry-deployed and served (`testing/e2e.test.sh`, before every tag) | no |
 | `tag.yml` | cuts a `baseline-vN` tag (manual) | no |

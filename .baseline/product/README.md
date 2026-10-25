@@ -10,7 +10,7 @@ Assets** through SvelteKit's own
 
 <!-- 03-docs:begin -->
 Not recorded yet. The bootstrap's last phase writes the live URLs, the
-workspace and the secrets inventory into
+workspace and the secrets the site uses into
 [ai/context/deployment.md](ai/context/deployment.md); how the site deploys
 and how to operate it is in
 [ai/context/operations.md](ai/context/operations.md).
@@ -67,9 +67,11 @@ changed components and runs each lane against the workspace in
 `intent.yaml`. The site deploys to `stage`, then to `prod` once stage has
 converged on the same commit; `dev` only verifies. The Worker is
 `sveltekit-boilerplate-web-<env>` on your account's workers.dev subdomain, and
-every deploy is smoke-tested over HTTP. `checks.yml` runs install, typecheck,
-lint, test and build on every pull request. (A push to `main` runs `ci.yml`
-alone, which builds and deploys.)
+every deploy is smoke-tested over HTTP. A pull request runs the same
+pipeline's verify lanes: the site built and dry-deployed for each
+environment, with nothing deployed. They do not lint or run the tests, so
+run `pnpm typecheck`, `pnpm lint` and `pnpm test` before you push. (A push
+to `main` builds, deploys and smoke-tests.)
 
 The pipeline holds one credential, GitHub's own `GITHUB_TOKEN`. The
 Cloudflare token and account id are brokered per run from the workspace's
