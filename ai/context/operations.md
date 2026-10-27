@@ -98,6 +98,7 @@ orun integrations list --org <ws> --json && orun cloud check --org <ws>
 | change a page | edit `apps/web/src/routes/…`, merge |
 | rename the site | edit `SITE_NAME` in `apps/web/src/lib/site.js`, merge |
 | deploy a change | merge to `main`; watch the run; failed lanes → `gh run rerun --failed` |
+| deploy by hand | Orunbase's Deploy button, or `gh workflow run ci.yml --ref main -f environment=<env> [-f component=<a,b>]` — the named components (blank: every one) run in that environment as a merge runs them; started off `main` it is refused |
 | redeploy without a change | edit the last line of `apps/web/component.yaml` (`# orun: redeploy <reason> <stamp>`) and merge — it is a deploy trigger, nothing reads it |
 | serve a custom domain | attach it to the Worker in Cloudflare (README, "Custom domain"), then replace the placeholder `sveltekit-boilerplate.example.com` in `intent.yaml`'s `BASE_DOMAIN` (dev, stage and prod) with it; nothing else changes |
 | share todos across devices | swap `read`/`write` in `apps/web/src/routes/todos/store.js` for a KV namespace bound in `wrangler.jsonc` |
